@@ -1,8 +1,5 @@
 {
   "rewrites": [
     { "source": "/(.*)", "destination": "/" }
-  ],
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD ."
+  ]
 }
