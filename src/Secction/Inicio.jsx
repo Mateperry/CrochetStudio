@@ -20,7 +20,12 @@ const Inicio = ({ productos, agregarAlCarrito }) => {
       <div className="px-4 py-6 space-y-10 text-[#272321] mt-8">
         {secciones.map(({ titulo, categoria }) => {
           const productosFiltrados = productos
-            .filter(producto => producto.categorias.includes(categoria))
+            .filter(producto => {
+              if (categoria === "Ofertas") {
+                return producto.categorias.includes("Ofertas") || producto.precioPromocional !== null;
+              }
+              return producto.categorias.includes(categoria);
+            })
             .slice(0, 8); // ⬅️ Limita a 8 productos por sección
 
           return (

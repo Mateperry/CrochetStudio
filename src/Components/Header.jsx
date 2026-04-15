@@ -1,10 +1,11 @@
 import {
   HomeIcon, StarIcon, FilmIcon, TvIcon, GhostIcon,
   PawPrintIcon, SparklesIcon, TagIcon, ShoppingCartIcon,
-  UserIcon
+  UserIcon, LogInIcon, LogOutIcon, SettingsIcon
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
 
 const menuItems = [
   { label: "Inicio", icon: <HomeIcon />, link: "/" },
@@ -19,7 +20,8 @@ const menuItems = [
   { label: "Contacto", icon: <UserIcon />, link: "/contacto" },
 ];
 
-export default function Sidebar({ collapsed, setCollapsed, totalCarrito = 0 }) {
+export default function Sidebar({ collapsed, setCollapsed, totalCarrito = 0, onOpenAuth }) {
+  const { user, userProfile, isAdmin, signOut } = useAuth();
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
@@ -138,6 +140,72 @@ export default function Sidebar({ collapsed, setCollapsed, totalCarrito = 0 }) {
               </div>
               {!collapsed && <span>Carrito</span>}
             </NavLink>
+          </div>
+
+          {/* Auth section */}
+          <div className="pt-2 border-t border-[#71675d]">
+            {user ? (
+              <>
+                {/* User info */}
+                <div className={`flex items-center gap-2 px-2 py-2 text-sm text-[#272321] ${collapsed ? 'justify-center' : ''}`}>
+                  {userProfile?.avatar_url ? (
+                    <img
+                      src={userProfile.avatar_url}
+                      alt="Avatar"
+                      className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <UserIcon size={18} className="flex-shrink-0" />
+                  )}
+                  {!collapsed && (
+                    <span className="truncate text-xs">
+                      {userProfile?.display_name || user.email}
+                    </span>
+                  )}
+                </div>
+
+                {/* Admin link */}
+                {isAdmin && (
+                  <NavLink
+                    to="/admin"
+                    onClick={handleItemClick}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-2 py-2 rounded-md text-sm transition-colors ${
+                        isActive
+                          ? 'bg-[#71675d] text-white'
+                          : 'hover:bg-[#71675d] text-[#272321]'
+                      }`
+                    }
+                  >
+                    <SettingsIcon size={18} />
+                    {!collapsed && <span>Panel Admin</span>}
+                  </NavLink>
+                )}
+
+                {/* Sign out */}
+                <button
+                  onClick={() => {
+                    signOut();
+                    handleItemClick();
+                  }}
+                  className="flex items-center gap-3 px-2 py-2 rounded-md text-sm transition-colors hover:bg-[#71675d] text-[#272321] w-full"
+                >
+                  <LogOutIcon size={18} />
+                  {!collapsed && <span>Cerrar sesión</span>}
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => {
+                  onOpenAuth();
+                  handleItemClick();
+                }}
+                className="flex items-center gap-3 px-2 py-2 rounded-md text-sm transition-colors hover:bg-[#71675d] text-[#272321] w-full"
+              >
+                <LogInIcon size={18} />
+                {!collapsed && <span>Iniciar sesión</span>}
+              </button>
+            )}
           </div>
         </aside>
       )}

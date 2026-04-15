@@ -32,7 +32,7 @@ function TarjetasInicio({ productos, agregarAlCarrito }) {
                 <span className="text-lg font-bold text-grayblock">
                   ${producto.precioPromocional.toLocaleString()}
                 </span>
-                <span className="text-xs text-green-600 font-semibold bg-green-100 px-2 py-0.5 rounded">
+                <span className="text-xs text-green-600 font-semibold bg-green-100 px-2 py-0.5 rounded ml-2">
                   {descuento}% OFF
                 </span>
               </div>
