@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { CartContext } from './cartContextValue';
 import { cartReducer, clampQuantity, MAX_QUANTITY } from './cartReducer';
 import { loadCart, saveCart } from './cartStorage';
@@ -14,6 +14,9 @@ import { getUnitPrice } from '../../lib/pricing';
  */
 export function CartProvider({ children }) {
   const [items, dispatch] = useReducer(cartReducer, undefined, () => loadCart());
+  const [isDrawerOpen, setDrawerOpen] = useState(false);
+  const openDrawer = useCallback(() => setDrawerOpen(true), []);
+  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
   const { data: products, isSuccess } = useProducts();
   const toast = useToast();
   const itemsRef = useRef(items);
@@ -56,6 +59,7 @@ export function CartProvider({ children }) {
       } else {
         toast.success('Producto agregado al carrito.');
       }
+      setDrawerOpen(true);
     },
     [toast],
   );
@@ -90,8 +94,11 @@ export function CartProvider({ children }) {
       updateQuantity,
       remove,
       clear,
+      isDrawerOpen,
+      openDrawer,
+      closeDrawer,
     };
-  }, [items, productsById, isSuccess, add, updateQuantity, remove, clear]);
+  }, [items, productsById, isSuccess, add, updateQuantity, remove, clear, isDrawerOpen, openDrawer, closeDrawer]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

@@ -13,6 +13,7 @@ import ThemeToggle from '../components/ui/ThemeToggle';
 import { useToast } from '../components/ui/Toast/useToast';
 import { useProducts } from '../features/catalog/hooks/useProducts';
 import { contrastRatio, parseRgbChannels } from '../lib/contrast';
+import { formatPrice } from '../lib/formatPrice';
 
 const SWATCHES = [
   { token: 'bg', label: 'Fondo', className: 'bg-bg' },
@@ -202,7 +203,7 @@ export default function StyleGuidePage() {
                   />
                   <div className="p-3">
                     <p className="truncate font-medium">{product.nombre}</p>
-                    <p className="text-sm text-ink-muted">${product.precio.toLocaleString('es-CO')}</p>
+                    <p className="text-sm text-ink-muted">{formatPrice(product.precio)}</p>
                   </div>
                 </Card>
               ))}

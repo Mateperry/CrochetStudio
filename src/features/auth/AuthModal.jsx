@@ -1,293 +1,186 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { XIcon, MailIcon, LockIcon, UserIcon, ChromeIcon } from 'lucide-react';
+import Modal from '../../components/ui/Modal';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
 import { useAuth } from './useAuth';
+import { MIN_PASSWORD_LENGTH, validateAuthForm } from './validateAuthForm';
+
+const EMPTY_FORM = { displayName: '', email: '', password: '' };
+
+// Official Google "G" logo. These brand hex colors are the only allowed exception to the token rule.
+function GoogleLogo() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+    </svg>
+  );
+}
 
 /**
- * AuthModal — Login/Register popup (Mercado Libre style).
- * Responsibilities:
- *   - Toggle between login and register modes.
- *   - Email/password form with client-side validation.
- *   - Google OAuth button.
- *   - Display auth errors in Spanish.
- *   - Close on successful authentication.
+ * AuthModal — login / register with email and password, or Google.
+ * Field errors appear under each field; server errors appear above the form.
  */
 export default function AuthModal({ isOpen, onClose }) {
   const { signIn, signUp, signInWithGoogle, authError, clearError } = useAuth();
-
-  const [mode, setMode] = useState('login'); // 'login' | 'register'
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [localError, setLocalError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mode, setMode] = useState('login');
+  const [values, setValues] = useState(EMPTY_FORM);
+  const [errors, setErrors] = useState({});
+  const [pending, setPending] = useState(null); // 'form' | 'google' | null
   const [successMessage, setSuccessMessage] = useState('');
+  const [unexpectedError, setUnexpectedError] = useState('');
 
-  const resetForm = () => {
-    setEmail('');
-    setPassword('');
-    setDisplayName('');
-    setLocalError('');
+  const isLogin = mode === 'login';
+
+  const reset = () => {
+    setValues(EMPTY_FORM);
+    setErrors({});
     setSuccessMessage('');
+    setUnexpectedError('');
     clearError();
   };
 
-  const toggleMode = () => {
-    setMode((prev) => (prev === 'login' ? 'register' : 'login'));
-    resetForm();
-  };
-
   const handleClose = () => {
-    resetForm();
+    reset();
     setMode('login');
     onClose();
   };
 
-  /**
-   * Validates form fields before submission.
-   */
-  const validateForm = () => {
-    if (!email.trim()) {
-      setLocalError('Por favor ingresa tu correo electrónico.');
-      return false;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setLocalError('El formato del correo no es válido.');
-      return false;
-    }
-
-    if (!password.trim()) {
-      setLocalError('Por favor ingresa tu contraseña.');
-      return false;
-    }
-
-    if (password.length < 6) {
-      setLocalError('La contraseña debe tener al menos 6 caracteres.');
-      return false;
-    }
-
-    if (mode === 'register' && !displayName.trim()) {
-      setLocalError('Por favor ingresa tu nombre.');
-      return false;
-    }
-
-    return true;
+  const switchMode = () => {
+    reset();
+    setMode(isLogin ? 'register' : 'login');
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLocalError('');
+  const handleChange = (field) => (event) => {
+    const { value } = event.target;
+    setValues((current) => ({ ...current, [field]: value }));
+    if (errors[field]) setErrors((current) => ({ ...current, [field]: undefined }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     clearError();
+    setUnexpectedError('');
+    const nextErrors = validateAuthForm(values, mode);
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
 
-    if (!validateForm()) return;
-
-    setIsSubmitting(true);
-
+    setPending('form');
     try {
-      if (mode === 'login') {
-        const result = await signIn(email, password);
-        if (result.success) {
-          handleClose();
-        }
+      if (isLogin) {
+        const result = await signIn(values.email.trim(), values.password);
+        if (result.success) handleClose();
       } else {
-        const result = await signUp(email, password, displayName);
+        const result = await signUp(values.email.trim(), values.password, values.displayName.trim());
         if (result.success) {
-          setSuccessMessage(
-            '¡Registro exitoso! Revisa tu correo para confirmar tu cuenta.'
-          );
-          setEmail('');
-          setPassword('');
-          setDisplayName('');
+          setValues(EMPTY_FORM);
+          setSuccessMessage('¡Registro exitoso! Revisa tu correo para confirmar tu cuenta.');
         }
       }
     } catch {
-      setLocalError('Ocurrió un error inesperado. Inténtalo de nuevo.');
+      setUnexpectedError('Ocurrió un error inesperado. Inténtalo de nuevo.');
     } finally {
-      setIsSubmitting(false);
+      setPending(null);
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogle = async () => {
     clearError();
-    setLocalError('');
-    await signInWithGoogle();
+    setUnexpectedError('');
+    setPending('google');
+    const result = await signInWithGoogle();
+    // On success the browser is redirected to Google; only reset the button on failure.
+    if (!result?.success) setPending(null);
   };
 
-  const displayError = localError || authError;
+  const serverError = unexpectedError || authError;
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Overlay */}
-          <motion.div
-            className="fixed inset-0 bg-black/50 z-[60] backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={handleClose}
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={isLogin ? 'Iniciar sesión' : 'Crear cuenta'}
+      description={isLogin ? 'Ingresa a tu cuenta de Crochet Studio' : 'Regístrate para seguir tus pedidos'}
+    >
+      <div className="space-y-4">
+        {successMessage && (
+          <p role="status" className="rounded-md bg-success/10 px-4 py-3 text-sm text-success">
+            {successMessage}
+          </p>
+        )}
+        {serverError && !successMessage && (
+          <p role="alert" className="rounded-md bg-danger/10 px-4 py-3 text-sm text-danger">
+            {serverError}
+          </p>
+        )}
+
+        <Button
+          variant="secondary"
+          className="w-full"
+          onClick={handleGoogle}
+          loading={pending === 'google'}
+          loadingText="Conectando con Google..."
+          disabled={pending === 'form'}
+        >
+          <GoogleLogo />
+          Continuar con Google
+        </Button>
+
+        <div className="flex items-center gap-3 text-xs text-ink-muted" aria-hidden="true">
+          <span className="h-px flex-1 bg-line" />o<span className="h-px flex-1 bg-line" />
+        </div>
+
+        <form onSubmit={handleSubmit} noValidate className="space-y-3">
+          {!isLogin && (
+            <Input
+              label="Nombre"
+              autoComplete="name"
+              value={values.displayName}
+              onChange={handleChange('displayName')}
+              error={errors.displayName}
+              required
+            />
+          )}
+          <Input
+            label="Correo electrónico"
+            type="email"
+            autoComplete="email"
+            inputMode="email"
+            value={values.email}
+            onChange={handleChange('email')}
+            error={errors.email}
+            required
           />
-
-          {/* Modal */}
-          <motion.div
-            className="fixed inset-0 flex items-center justify-center z-[70] p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <Input
+            label="Contraseña"
+            type="password"
+            autoComplete={isLogin ? 'current-password' : 'new-password'}
+            value={values.password}
+            onChange={handleChange('password')}
+            error={errors.password}
+            hint={isLogin ? undefined : `Mínimo ${MIN_PASSWORD_LENGTH} caracteres.`}
+            required
+          />
+          <Button
+            type="submit"
+            className="w-full"
+            loading={pending === 'form'}
+            loadingText="Procesando..."
+            disabled={pending === 'google'}
           >
-            <motion.div
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header */}
-              <div className="relative bg-gradient-to-r from-[#71675d] to-[#938a7c] p-6 text-white">
-                <button
-                  onClick={handleClose}
-                  className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
-                  aria-label="Cerrar"
-                >
-                  <XIcon size={24} />
-                </button>
+            {isLogin ? 'Iniciar sesión' : 'Registrarse'}
+          </Button>
+        </form>
 
-                <h2 className="text-2xl font-bold">
-                  {mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
-                </h2>
-                <p className="text-white/80 text-sm mt-1">
-                  {mode === 'login'
-                    ? 'Ingresa a tu cuenta de CrochetStudio'
-                    : 'Regístrate para empezar'}
-                </p>
-              </div>
-
-              {/* Body */}
-              <div className="p-6 space-y-4">
-                {/* Success message */}
-                {successMessage && (
-                  <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
-                    {successMessage}
-                  </div>
-                )}
-
-                {/* Error message */}
-                {displayError && !successMessage && (
-                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
-                    {displayError}
-                  </div>
-                )}
-
-                {/* Google OAuth */}
-                <button
-                  onClick={handleGoogleLogin}
-                  disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-gray-700 font-medium disabled:opacity-50"
-                >
-                  <svg className="w-5 h-5" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                  </svg>
-                  Continuar con Google
-                </button>
-
-                {/* Divider */}
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-200" />
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-3 bg-white text-gray-400">o</span>
-                  </div>
-                </div>
-
-                {/* Email/Password Form */}
-                <form onSubmit={handleSubmit} className="space-y-3">
-                  {mode === 'register' && (
-                    <div className="relative">
-                      <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                      <input
-                        id="auth-display-name"
-                        type="text"
-                        placeholder="Tu nombre"
-                        value={displayName}
-                        onChange={(e) => setDisplayName(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#71675d] focus:outline-none transition-colors text-gray-700"
-                      />
-                    </div>
-                  )}
-
-                  <div className="relative">
-                    <MailIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      id="auth-email"
-                      type="email"
-                      placeholder="Correo electrónico"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#71675d] focus:outline-none transition-colors text-gray-700"
-                    />
-                  </div>
-
-                  <div className="relative">
-                    <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      id="auth-password"
-                      type="password"
-                      placeholder="Contraseña"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#71675d] focus:outline-none transition-colors text-gray-700"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full py-3 bg-[#71675d] hover:bg-[#5a5148] text-white font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting
-                      ? 'Procesando...'
-                      : mode === 'login'
-                        ? 'Iniciar sesión'
-                        : 'Registrarse'}
-                  </button>
-                </form>
-
-                {/* Toggle mode */}
-                <p className="text-center text-sm text-gray-500">
-                  {mode === 'login' ? (
-                    <>
-                      ¿No tienes cuenta?{' '}
-                      <button
-                        onClick={toggleMode}
-                        className="text-[#71675d] font-semibold hover:underline"
-                      >
-                        Regístrate
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      ¿Ya tienes cuenta?{' '}
-                      <button
-                        onClick={toggleMode}
-                        className="text-[#71675d] font-semibold hover:underline"
-                      >
-                        Inicia sesión
-                      </button>
-                    </>
-                  )}
-                </p>
-              </div>
-            </motion.div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+        <p className="text-center text-sm text-ink-muted">
+          {isLogin ? '¿No tienes cuenta? ' : '¿Ya tienes cuenta? '}
+          <button type="button" onClick={switchMode} className="font-semibold text-accent hover:underline">
+            {isLogin ? 'Regístrate' : 'Inicia sesión'}
+          </button>
+        </p>
+      </div>
+    </Modal>
   );
 }

@@ -1,99 +1,72 @@
-import { Link } from "react-router-dom";
-import { useCart } from "../features/cart/useCart";
-import { MAX_QUANTITY } from "../features/cart/cartReducer";
+import { Link } from 'react-router-dom';
+import { ShoppingBagIcon } from 'lucide-react';
+import Card from '../components/ui/Card';
+import { buttonClasses } from '../components/ui/classes';
+import CartLineItem from '../features/cart/CartLineItem';
+import { useCart } from '../features/cart/useCart';
+import { CatalogLoading } from '../features/catalog/CatalogStatus';
+import { formatPrice } from '../lib/formatPrice';
 
-const QUANTITY_OPTIONS = Array.from({ length: MAX_QUANTITY }, (_, i) => i + 1);
+export default function CartPage() {
+  const { items, lines, count, subtotal, isCatalogReady } = useCart();
 
-const CartPage = () => {
-  const { lines, subtotal, updateQuantity, remove } = useCart();
+  // Cart has items but the catalog (prices, names) is still loading.
+  if (items.length > 0 && !isCatalogReady && lines.length === 0) {
+    return <CatalogLoading label="Cargando tu carrito..." />;
+  }
+
+  if (lines.length === 0) {
+    return (
+      <section className="flex flex-col items-center py-20 text-center">
+        <ShoppingBagIcon size={48} className="text-ink-muted" aria-hidden="true" />
+        <h1 className="mt-4 font-display text-3xl font-semibold">Tu carrito está vacío</h1>
+        <p className="mt-2 text-ink-muted">Encuentra tu próximo amigurumi favorito.</p>
+        <Link to="/" className={buttonClasses({ className: 'mt-8' })}>
+          Explorar la tienda
+        </Link>
+      </section>
+    );
+  }
 
   return (
-    <div className="max-w-5xl mx-auto p-4 text-[#272321]">
-      <h1 className="text-3xl font-bold mb-6 text-center">Carrito de compras</h1>
+    <div className="space-y-6">
+      <h1 className="font-display text-3xl font-semibold md:text-4xl">Carrito</h1>
 
-      {lines.length === 0 ? (
-        <div className="text-center text-gray-600">
-          <p>Tu carrito está vacío.</p>
+      <div className="grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-start">
+        <Card className="px-4 md:px-6">
+          <ul className="divide-y divide-line">
+            {lines.map((line) => (
+              <CartLineItem key={line.productId} line={line} />
+            ))}
+          </ul>
+        </Card>
+
+        <Card as="aside" aria-labelledby="resumen-pedido" className="space-y-4 p-5 lg:sticky lg:top-28">
+          <h2 id="resumen-pedido" className="font-display text-xl font-semibold">
+            Resumen del pedido
+          </h2>
+          <dl className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-ink-muted">Productos</dt>
+              <dd className="tabular-nums">{count}</dd>
+            </div>
+            <div className="flex justify-between border-t border-line pt-2 text-base">
+              <dt>Subtotal</dt>
+              <dd className="font-semibold tabular-nums">{formatPrice(subtotal)}</dd>
+            </div>
+          </dl>
+          <p className="text-xs text-ink-muted">El envío se coordina al confirmar el pedido.</p>
+          <Link to="/checkout" className={buttonClasses({ className: 'w-full' })}>
+            Finalizar compra
+          </Link>
           <Link
             to="/"
-            className="mt-4 inline-block bg-yellow-400 hover:bg-yellow-600 text-[#272321] px-4 py-2 rounded"
+            className="block text-center text-sm font-medium text-ink-muted underline-offset-4 hover:text-accent hover:underline"
           >
-            Volver a la tienda
+            Seguir comprando
           </Link>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {lines.map(({ productId, quantity, product, unitPrice, lineTotal }) => (
-            <div
-              key={productId}
-              className="flex flex-col sm:flex-row justify-between gap-4 bg-white shadow p-4 rounded-md"
-            >
-              <div className="flex gap-4">
-                <img
-                  src={product.imagenes[0]}
-                  alt={product.nombre}
-                  className="w-24 h-24 sm:w-20 sm:h-20 object-cover rounded"
-                />
-                <div className="flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold">{product.nombre}</h3>
-                    <p className="text-sm text-gray-700">
-                      {product.precioPromocional != null && (
-                        <span className="line-through mr-2 text-gray-500">
-                          ${product.precio.toLocaleString()}
-                        </span>
-                      )}
-                      <span className="text-[#272321] font-bold">${unitPrice.toLocaleString()}</span>
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2 mt-2">
-                    <label htmlFor={`cantidad-${productId}`} className="text-sm">Cantidad:</label>
-                    <select
-                      id={`cantidad-${productId}`}
-                      value={quantity}
-                      onChange={(e) => updateQuantity(productId, Number(e.target.value))}
-                      className="w-20 border rounded px-2 py-1 text-sm"
-                    >
-                      {QUANTITY_OPTIONS.map((num) => (
-                        <option key={num} value={num}>{num}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <p className="text-sm font-semibold text-[#272321] mt-1">
-                    Subtotal: ${lineTotal.toLocaleString()}
-                  </p>
-                </div>
-              </div>
-
-              <div className="sm:self-center">
-                <button
-                  onClick={() => remove(productId)}
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded text-sm w-full sm:w-auto mt-2 sm:mt-0"
-                >
-                  Eliminar
-                </button>
-              </div>
-            </div>
-          ))}
-
-          <div className="flex flex-col sm:flex-row justify-between items-center mt-8 border-t pt-4 gap-4 text-center sm:text-left">
-            <div className="text-xl font-bold">
-              Total: <span className="text-[#272321]">${subtotal.toLocaleString()}</span>
-            </div>
-
-            <Link
-              to="/checkout"
-              className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded text-sm font-medium"
-            >
-              Finalizar compra
-            </Link>
-          </div>
-        </div>
-      )}
+        </Card>
+      </div>
     </div>
   );
-};
-
-export default CartPage;
+}

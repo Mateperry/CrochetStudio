@@ -1,15 +1,15 @@
 import { useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Navigation from "../components/layout/Navigation";
 import ScrollToTop from "../components/layout/ScrollToTop";
 import AuthModal from "../features/auth/AuthModal";
+import CartDrawer from "../features/cart/CartDrawer";
+import { useCart } from "../features/cart/useCart";
 import AppRoutes from "./routes";
 
 export default function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const navigate = useNavigate();
+  const { openDrawer } = useCart();
   const openAuth = useCallback(() => setShowAuthModal(true), []);
-  const openCart = useCallback(() => navigate("/carrito"), [navigate]);
 
   return (
     <div className="min-h-screen bg-bg text-ink">
@@ -21,7 +21,8 @@ export default function App() {
       </a>
       <ScrollToTop />
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
-      <Navigation onOpenAuth={openAuth} onOpenCart={openCart} />
+      <CartDrawer />
+      <Navigation onOpenAuth={openAuth} onOpenCart={openDrawer} />
 
       {/* Top padding clears the fixed top bar; bottom padding clears the mobile tab bar. */}
       <main
