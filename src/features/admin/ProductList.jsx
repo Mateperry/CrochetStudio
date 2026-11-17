@@ -1,168 +1,175 @@
-import { useState } from 'react';
-import { EditIcon, TrashIcon, SearchIcon, AlertTriangleIcon } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { PencilIcon, SearchIcon, Trash2Icon } from 'lucide-react';
+import Card from '../../components/ui/Card';
+import Badge from '../../components/ui/Badge';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import Modal from '../../components/ui/Modal';
+import { formatPrice } from '../../lib/formatPrice';
+import { useMediaQuery } from '../../lib/useMediaQuery';
+
+const MAX_BADGES = 3;
+
+function normalize(text) {
+  return String(text ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function CategoryBadges({ categories = [] }) {
+  return (
+    <div className="flex flex-wrap gap-1">
+      {categories.slice(0, MAX_BADGES).map((name) => (
+        <Badge key={name}>{name}</Badge>
+      ))}
+      {categories.length > MAX_BADGES && <Badge>+{categories.length - MAX_BADGES}</Badge>}
+    </div>
+  );
+}
+
+function Thumbnail({ product }) {
+  return (
+    <div className="h-14 w-12 shrink-0 overflow-hidden rounded-md bg-surface-muted">
+      {product.imagenes?.[0] && <img src={product.imagenes[0]} alt="" loading="lazy" className="h-full w-full object-cover" />}
+    </div>
+  );
+}
+
+function PriceCell({ product }) {
+  return (
+    <div className="text-sm">
+      <p className="font-semibold tabular-nums">{formatPrice(product.precio)}</p>
+      {product.precioPromocional != null && (
+        <p className="text-xs text-success tabular-nums">Promo {formatPrice(product.precioPromocional)}</p>
+      )}
+    </div>
+  );
+}
+
+function RowActions({ product, onEdit, onDelete }) {
+  return (
+    <div className="flex gap-2">
+      <Button variant="secondary" size="sm" onClick={() => onEdit(product)} aria-label={`Editar ${product.nombre}`}>
+        <PencilIcon size={14} aria-hidden="true" />
+        <span className="hidden sm:inline">Editar</span>
+      </Button>
+      <Button variant="ghost" size="sm" onClick={() => onDelete(product)} aria-label={`Eliminar ${product.nombre}`}>
+        <Trash2Icon size={14} aria-hidden="true" className="text-danger" />
+      </Button>
+    </div>
+  );
+}
 
 /**
- * ProductList — Admin product management table.
- * Responsibilities:
- *   - Display all products in a searchable table.
- *   - Actions: Edit and Delete (with confirmation).
- *   - Responsive: card layout on mobile, table on desktop.
+ * ProductList — searchable list: table on desktop, cards on mobile; delete asks for confirmation in a Modal.
  */
 export default function ProductList({ products, onEdit, onDelete, isDeleting }) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [search, setSearch] = useState('');
+  const [toDelete, setToDelete] = useState(null);
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
-  const filteredProducts = products.filter((p) =>
-    p.nombre.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered = useMemo(() => {
+    const term = normalize(search.trim());
+    if (!term) return products;
+    return products.filter(
+      (product) => normalize(product.nombre).includes(term) || product.categorias?.some((name) => normalize(name).includes(term)),
+    );
+  }, [products, search]);
 
-  const handleDeleteClick = (product) => {
-    setDeleteConfirm(product);
-  };
-
-  const handleConfirmDelete = () => {
-    if (deleteConfirm) {
-      onDelete(deleteConfirm.id);
-      setDeleteConfirm(null);
-    }
-  };
-
-  const handleCancelDelete = () => {
-    setDeleteConfirm(null);
+  const confirmDelete = async () => {
+    if (!toDelete) return;
+    const ok = await onDelete(toDelete.id);
+    if (ok !== false) setToDelete(null);
   };
 
   return (
     <div className="space-y-4">
-      {/* Search bar */}
       <div className="relative">
-        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-        <input
-          id="admin-product-search"
-          type="text"
-          placeholder="Buscar producto por nombre..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#71675d] focus:outline-none transition-colors"
+        <SearchIcon size={18} className="pointer-events-none absolute left-3 top-[2.65rem] text-ink-muted" aria-hidden="true" />
+        <Input
+          label="Buscar producto"
+          type="search"
+          placeholder="Nombre o categoría"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          className="pl-10"
         />
       </div>
-
-      {/* Results count */}
-      <p className="text-sm text-gray-500">
-        {filteredProducts.length} producto{filteredProducts.length !== 1 ? 's' : ''} encontrado{filteredProducts.length !== 1 ? 's' : ''}
+      <p className="text-sm text-ink-muted" aria-live="polite">
+        {filtered.length} {filtered.length === 1 ? 'producto' : 'productos'}
       </p>
 
-      {/* Product list */}
-      {filteredProducts.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">
-          <p className="text-lg">No se encontraron productos.</p>
-        </div>
+      {filtered.length === 0 ? (
+        <Card className="px-6 py-12 text-center text-ink-muted">No se encontraron productos.</Card>
+      ) : isDesktop ? (
+        <Card className="overflow-x-auto p-0">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-surface-muted text-xs uppercase tracking-wide text-ink-muted">
+              <tr>
+                <th scope="col" className="px-4 py-3 font-semibold">Producto</th>
+                <th scope="col" className="px-4 py-3 font-semibold">Precio</th>
+                <th scope="col" className="px-4 py-3 font-semibold">Categorías</th>
+                <th scope="col" className="px-4 py-3 font-semibold"><span className="sr-only">Acciones</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((product) => (
+                <tr key={product.id} className="border-t border-line">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <Thumbnail product={product} />
+                      <span className="font-medium">{product.nombre}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3"><PriceCell product={product} /></td>
+                  <td className="px-4 py-3"><CategoryBadges categories={product.categorias} /></td>
+                  <td className="px-4 py-3">
+                    <div className="flex justify-end">
+                      <RowActions product={product} onEdit={onEdit} onDelete={setToDelete} />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
       ) : (
-        <div className="space-y-3">
-          {filteredProducts.map((product) => (
-            <div
-              key={product.id}
-              className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow"
-            >
-              {/* Image */}
-              <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                {product.imagenes && product.imagenes[0] ? (
-                  <img
-                    src={product.imagenes[0]}
-                    alt={product.nombre}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
-                    Sin img
-                  </div>
-                )}
-              </div>
-
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-[#272321] truncate">{product.nombre}</h3>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="text-sm font-bold text-[#272321]">
-                    ${product.precio?.toLocaleString()}
-                  </span>
-                  {product.precioPromocional && (
-                    <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full font-medium">
-                      Promo: ${product.precioPromocional.toLocaleString()}
-                    </span>
-                  )}
+        <ul className="space-y-3">
+          {filtered.map((product) => (
+            <li key={product.id}>
+              <Card className="flex gap-3 p-3">
+                <Thumbnail product={product} />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <p className="truncate font-medium">{product.nombre}</p>
+                  <PriceCell product={product} />
+                  <CategoryBadges categories={product.categorias} />
                 </div>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {product.categorias?.slice(0, 3).map((cat, i) => (
-                    <span
-                      key={i}
-                      className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full"
-                    >
-                      {cat}
-                    </span>
-                  ))}
-                  {product.categorias?.length > 3 && (
-                    <span className="text-xs text-gray-400">
-                      +{product.categorias.length - 3}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-2 self-end sm:self-center">
-                <button
-                  onClick={() => onEdit(product)}
-                  className="flex items-center gap-1 px-3 py-2 text-sm text-[#71675d] hover:bg-[#71675d] hover:text-white border border-[#71675d] rounded-lg transition-colors"
-                  aria-label={`Editar ${product.nombre}`}
-                >
-                  <EditIcon size={14} />
-                  <span className="hidden sm:inline">Editar</span>
-                </button>
-                <button
-                  onClick={() => handleDeleteClick(product)}
-                  disabled={isDeleting}
-                  className="flex items-center gap-1 px-3 py-2 text-sm text-red-500 hover:bg-red-500 hover:text-white border border-red-300 rounded-lg transition-colors disabled:opacity-50"
-                  aria-label={`Eliminar ${product.nombre}`}
-                >
-                  <TrashIcon size={14} />
-                  <span className="hidden sm:inline">Eliminar</span>
-                </button>
-              </div>
-            </div>
+                <RowActions product={product} onEdit={onEdit} onDelete={setToDelete} />
+              </Card>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
 
-      {/* Delete confirmation modal */}
-      {deleteConfirm && (
-        <>
-          <div className="fixed inset-0 bg-black/40 z-[80]" onClick={handleCancelDelete} />
-          <div className="fixed inset-0 flex items-center justify-center z-[90] p-4">
-            <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full text-center">
-              <AlertTriangleIcon className="mx-auto text-red-500 mb-3" size={48} />
-              <h3 className="text-lg font-bold text-[#272321] mb-2">¿Eliminar producto?</h3>
-              <p className="text-gray-600 text-sm mb-4">
-                Vas a eliminar <strong>{deleteConfirm.nombre}</strong>. Esta acción no se puede deshacer.
-              </p>
-              <div className="flex justify-center gap-3">
-                <button
-                  onClick={handleCancelDelete}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleConfirmDelete}
-                  disabled={isDeleting}
-                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl transition-colors disabled:opacity-50"
-                >
-                  {isDeleting ? 'Eliminando...' : 'Sí, eliminar'}
-                </button>
-              </div>
-            </div>
+      <Modal
+        isOpen={Boolean(toDelete)}
+        onClose={() => !isDeleting && setToDelete(null)}
+        title="¿Eliminar producto?"
+        description={toDelete ? `Vas a eliminar "${toDelete.nombre}". Esta acción no se puede deshacer.` : undefined}
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setToDelete(null)} disabled={isDeleting}>
+              Cancelar
+            </Button>
+            <Button variant="danger" onClick={confirmDelete} loading={isDeleting} loadingText="Eliminando...">
+              Sí, eliminar
+            </Button>
           </div>
-        </>
-      )}
+        }
+      >
+        <p className="text-sm text-ink-muted">También se eliminan sus imágenes y categorías asociadas.</p>
+      </Modal>
     </div>
   );
 }
