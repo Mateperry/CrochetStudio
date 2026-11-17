@@ -138,37 +138,31 @@ Para agregar fotos nuevas:
 
 ## Estructura de carpetas
 
-Estructura actual:
-
 ```bash
-public/            # Archivos estáticos servidos tal cual
+public/                   # Archivos estáticos (icon.png, robots.txt, sitemap.xml)
+scripts/                  # optimize-images.mjs
 src/
- ├── Components/   # Header, AuthModal, ProtectedRoute, ScrollToTop
- ├── Secction/     # Páginas y secciones (Inicio, categorías, detalle, carrito, admin)
- ├── context/      # AuthContext
- ├── hooks/        # useProducts, useCategories, useAuth, useAdminProducts
- ├── lib/          # Cliente de Supabase
- ├── sql/          # Scripts SQL de autenticación y RLS
- ├── App.jsx
- └── main.jsx
-```
-
-Estructura objetivo (se adopta en la Fase 3 del plan):
-
-```bash
-src/
- ├── app/                 # App, providers y rutas
- ├── pages/               # Una página por ruta
- ├── components/ui/       # Componentes base del sistema de diseño
- ├── components/layout/   # Navegación y layout
- ├── features/<dominio>/  # catalog, cart, auth, admin, checkout
- ├── lib/                 # Utilidades y clientes
- ├── constants/           # Constantes compartidas
- └── styles/              # Tokens y estilos globales
+ ├── app/                 # App, providers (QueryClient, Toast, Auth, Cart) y rutas
+ ├── pages/               # Una página por ruta (Home, Category, ProductDetail, Cart, Checkout, ...)
+ ├── components/ui/       # Sistema de diseño: Button, Card, Badge, Input, Modal, Toast, ...
+ ├── components/layout/   # Navigation, PageMeta, ScrollToTop
+ ├── features/
+ │   ├── catalog/         # ProductCard, ProductSection, Hero, filtros, useProducts
+ │   ├── cart/            # CartContext, reducer, almacenamiento, CartDrawer
+ │   ├── auth/            # AuthContext, AuthModal, ProtectedRoute
+ │   ├── admin/           # Productos y pedidos del panel
+ │   ├── checkout/        # Validación, create_order y métodos de pago
+ │   └── contact/         # Validación del formulario de contacto
+ ├── lib/                 # supabase, cn, formatPrice, pricing, hooks utilitarios
+ ├── constants/           # categories.js (fuente única de categorías)
+ ├── styles/              # tokens.css (paleta y vidrio)
+ └── test/                # setup de Vitest
 supabase/
  ├── migrations/          # Cambios de esquema
- └── seed.sql
+ └── seed.sql             # Datos de ejemplo
 ```
+
+La guía visual del sistema de diseño está en `/style-guide` (solo con `npm run dev`).
 
 ## Flujo de ramas
 
