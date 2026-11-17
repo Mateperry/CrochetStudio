@@ -1,7 +1,7 @@
-import { createContext, useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { AuthContext } from './authContextValue';
 import { supabase } from '../lib/supabase';
 
-export const AuthContext = createContext(null);
 
 /**
  * AuthProvider — Global authentication state manager.
@@ -136,7 +136,7 @@ export function AuthProvider({ children }) {
       }
 
       return { success: true, data };
-    } catch (err) {
+    } catch {
       const message = 'Error inesperado al iniciar sesión.';
       setAuthError(message);
       return { success: false, error: message };
@@ -165,7 +165,7 @@ export function AuthProvider({ children }) {
       }
 
       return { success: true, data };
-    } catch (err) {
+    } catch {
       const message = 'Error inesperado al registrarse.';
       setAuthError(message);
       return { success: false, error: message };
@@ -191,7 +191,7 @@ export function AuthProvider({ children }) {
       }
 
       return { success: true, data };
-    } catch (err) {
+    } catch {
       const message = 'Error inesperado al iniciar con Google.';
       setAuthError(message);
       return { success: false, error: message };

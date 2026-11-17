@@ -88,6 +88,8 @@ export default function Sidebar({ collapsed, setCollapsed, totalCarrito = 0, onO
         >
           <button
             onClick={() => setCollapsed(!collapsed)}
+            aria-label={collapsed ? "Abrir menú" : "Cerrar menú"}
+            aria-expanded={!collapsed}
             className="flex items-center gap-2 px-2 py-2 mb-4 rounded-md hover:bg-[#71675d] transition-colors"
           >
             <div className="flex flex-col justify-center items-start gap-[5px]">
@@ -213,6 +215,8 @@ export default function Sidebar({ collapsed, setCollapsed, totalCarrito = 0, onO
       {isMobile && collapsed && (
         <button
           onClick={() => setCollapsed(false)}
+          aria-label="Abrir menú"
+          aria-expanded={false}
           className="fixed top-4 left-4 z-50 bg-[#aba599] p-2 rounded-md shadow-md hover:bg-[#71675d] transition-colors"
         >
           <div className="flex flex-col justify-center items-start gap-[5px]">

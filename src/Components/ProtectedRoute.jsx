@@ -1,16 +1,23 @@
+import { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 /**
- * ProtectedRoute — Wrapper for admin-only routes.
+ * ProtectedRoute - Wrapper for admin-only routes.
  * Responsibilities:
  *   - Show loading spinner while auth state is resolving.
- *   - If no session → trigger login modal via onRequireAuth callback.
- *   - If session but not admin → redirect to home.
- *   - If admin → render children.
+ *   - If no session -> ask the parent to open the login modal (in an effect) and redirect home.
+ *   - If session but not admin -> show restricted access message.
+ *   - If admin -> render children.
  */
 export default function ProtectedRoute({ children, onRequireAuth }) {
   const { user, isAdmin, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && !user && onRequireAuth) {
+      onRequireAuth();
+    }
+  }, [isLoading, user, onRequireAuth]);
 
   if (isLoading) {
     return (
@@ -24,17 +31,12 @@ export default function ProtectedRoute({ children, onRequireAuth }) {
   }
 
   if (!user) {
-    // Trigger login modal and redirect to home
-    if (onRequireAuth) {
-      onRequireAuth();
-    }
     return <Navigate to="/" replace />;
   }
 
   if (!isAdmin) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-yellow-50 p-4 text-center">
-        <div className="text-yellow-500 text-6xl mb-4">🔒</div>
         <h2 className="text-2xl font-bold text-yellow-700 mb-2">
           Acceso restringido
         </h2>

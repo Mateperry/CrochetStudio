@@ -1,42 +1,22 @@
-import React from "react";
 import SeccionProductos from "./SeccionProductos";
 import LampDemo from "./Lamp";
+import { CATEGORIES, filterProductsByCategory } from "../constants/categories";
+
+const MAX_PRODUCTS_PER_SECTION = 8;
 
 const Inicio = ({ productos, agregarAlCarrito }) => {
-  const secciones = [
-    { titulo: "Novedades", categoria: "Novedades" },
-    { titulo: "Ofertas", categoria: "Ofertas" },
-    { titulo: "Animes", categoria: "Anime" },
-    { titulo: "Películas", categoria: "Peliculas" },
-    { titulo: "Series", categoria: "Series" },
-    { titulo: "Fantasia", categoria: "Fantasia" },
-    { titulo: "Animales", categoria: "Animales" },
-    { titulo: "Personalizados", categoria: "Personalizados" }
-  ];
-
   return (
     <>
       <LampDemo />
       <div className="px-4 py-6 space-y-10 text-[#272321] mt-8">
-        {secciones.map(({ titulo, categoria }) => {
-          const productosFiltrados = productos
-            .filter(producto => {
-              if (categoria === "Ofertas") {
-                return producto.categorias.includes("Ofertas") || producto.precioPromocional !== null;
-              }
-              return producto.categorias.includes(categoria);
-            })
-            .slice(0, 8); // ⬅️ Limita a 8 productos por sección
-
-          return (
-            <SeccionProductos
-              key={categoria}
-              titulo={titulo}
-              productos={productosFiltrados}
-              agregarAlCarrito={agregarAlCarrito}
-            />
-          );
-        })}
+        {CATEGORIES.map((category) => (
+          <SeccionProductos
+            key={category.slug}
+            category={category}
+            productos={filterProductsByCategory(productos, category).slice(0, MAX_PRODUCTS_PER_SECTION)}
+            agregarAlCarrito={agregarAlCarrito}
+          />
+        ))}
       </div>
     </>
   );

@@ -26,10 +26,10 @@ function TarjetasInicio({ productos, agregarAlCarrito }) {
 
             {producto.precioPromocional ? (
               <div className="text-center mt-2 space-y-1">
-                <span className="text-sm text-gray line-through block">
+                <span className="text-sm text-gray-700 line-through block">
                   ${producto.precio.toLocaleString()}
                 </span>
-                <span className="text-lg font-bold text-grayblock">
+                <span className="text-lg font-bold text-gray-900 block">
                   ${producto.precioPromocional.toLocaleString()}
                 </span>
                 <span className="text-xs text-green-600 font-semibold bg-green-100 px-2 py-0.5 rounded ml-2">
@@ -37,7 +37,7 @@ function TarjetasInicio({ productos, agregarAlCarrito }) {
                 </span>
               </div>
             ) : (
-              <p className="text-lg font-bold text-gray- mt-2">
+              <p className="text-lg font-bold text-gray-900 mt-2">
                 ${producto.precio.toLocaleString()}
               </p>
             )}

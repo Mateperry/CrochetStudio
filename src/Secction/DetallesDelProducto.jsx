@@ -1,10 +1,15 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 
 const DetalleProducto = ({ productos, agregarAlCarrito }) => {
   const { id } = useParams();
   const producto = productos.find((p) => p.id === parseInt(id));
-  const [imagenPrincipal, setImagenPrincipal] = useState(producto?.imagenes[0]);
+  // Selected image is stored per product id, so navigating to another product
+  // falls back to that product's first image.
+  const [seleccion, setSeleccion] = useState({ id: null, imagen: null });
+  const imagenPrincipal =
+    seleccion.id === id && seleccion.imagen ? seleccion.imagen : producto?.imagenes[0];
+  const setImagenPrincipal = (imagen) => setSeleccion({ id, imagen });
   const [cantidad, setCantidad] = useState(1);
 
   if (!producto) {
@@ -32,7 +37,7 @@ const DetalleProducto = ({ productos, agregarAlCarrito }) => {
           <img
             src={imagenPrincipal}
             alt={producto.nombre}
-            className="w-full h-90 object-cover rounded"
+            className="w-full h-[22.5rem] object-cover rounded"
           />
 
           <div className="flex gap-2 mt-4 overflow-x-auto">

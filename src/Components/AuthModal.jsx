@@ -13,7 +13,7 @@ import { useAuth } from '../hooks/useAuth';
  *   - Close on successful authentication.
  */
 export default function AuthModal({ isOpen, onClose }) {
-  const { signIn, signUp, signInWithGoogle, authError, clearError, isLoading: authLoading } = useAuth();
+  const { signIn, signUp, signInWithGoogle, authError, clearError } = useAuth();
 
   const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [email, setEmail] = useState('');
@@ -102,7 +102,7 @@ export default function AuthModal({ isOpen, onClose }) {
           setDisplayName('');
         }
       }
-    } catch (err) {
+    } catch {
       setLocalError('Ocurrió un error inesperado. Inténtalo de nuevo.');
     } finally {
       setIsSubmitting(false);
