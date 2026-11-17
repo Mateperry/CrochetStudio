@@ -1,231 +1,176 @@
-import {
-  HomeIcon, StarIcon, FilmIcon, TvIcon, GhostIcon,
-  PawPrintIcon, SparklesIcon, TagIcon, ShoppingCartIcon,
-  UserIcon, LogInIcon, LogOutIcon, SettingsIcon
-} from 'lucide-react';
-import { NavLink } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { Link, NavLink, useLocation } from 'react-router-dom';
+import { HomeIcon, LayoutGridIcon, LogOutIcon, MailIcon, SettingsIcon, UserIcon } from 'lucide-react';
+import GlassPanel from '../ui/GlassPanel';
+import Modal from '../ui/Modal';
+import ThemeToggle from '../ui/ThemeToggle';
+import Button from '../ui/Button';
+import CategoriesMenu from './CategoriesMenu';
+import AccountMenu from './AccountMenu';
+import CartButton from './CartButton';
+import { CATEGORIES } from '../../constants/categories';
 import { useAuth } from '../../features/auth/useAuth';
+import { cn } from '../../lib/cn';
 
-const menuItems = [
-  { label: "Inicio", icon: <HomeIcon />, link: "/" },
-  { label: "Novedades", icon: <StarIcon />, link: "/categoria/novedades" },
-  { label: "Animes", icon: <TvIcon />, link: "/categoria/anime" },
-  { label: "Películas", icon: <FilmIcon />, link: "/categoria/peliculas" },
-  { label: "Series", icon: <TvIcon />, link: "/categoria/series" },
-  { label: "Fantasía", icon: <GhostIcon />, link: "/categoria/fantasia" },
-  { label: "Animales", icon: <PawPrintIcon />, link: "/categoria/animales" },
-  { label: "Personalizados", icon: <SparklesIcon />, link: "/categoria/personalizados" },
-  { label: "Ofertas", icon: <TagIcon />, link: "/categoria/ofertas" },
-  { label: "Contacto", icon: <UserIcon />, link: "/contacto" },
-];
+const desktopLinkClass = ({ isActive }) =>
+  cn(
+    'rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-surface-muted',
+    isActive ? 'text-accent' : 'text-ink',
+  );
 
-export default function Navigation({ collapsed, setCollapsed, totalCarrito = 0, onOpenAuth }) {
+function Brand() {
+  return (
+    <Link to="/" className="font-display text-lg font-semibold tracking-tight text-ink md:text-xl">
+      Crochet Studio
+    </Link>
+  );
+}
+
+function BottomBarItem({ icon: Icon, label, active, ...props }) {
+  const Component = props.to ? Link : 'button';
+  return (
+    <Component
+      {...(props.to ? {} : { type: 'button' })}
+      {...props}
+      aria-current={props.to && active ? 'page' : undefined}
+      className={cn(
+        'flex h-14 flex-1 flex-col items-center justify-center gap-1 rounded-md text-[11px] font-medium transition-colors',
+        active ? 'text-accent' : 'text-ink',
+      )}
+    >
+      <Icon size={22} aria-hidden="true" />
+      {label}
+    </Component>
+  );
+}
+
+/**
+ * Navigation — glass top bar on desktop; thin top bar + bottom tab bar on mobile.
+ * The mobile "Categorías" and "Cuenta" tabs open bottom sheets.
+ */
+export default function Navigation({ onOpenAuth, onOpenCart }) {
+  const { pathname } = useLocation();
   const { user, userProfile, isAdmin, signOut } = useAuth();
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-
-  useEffect(() => {
-    const mobile = window.innerWidth <= 768;
-    setIsMobile(mobile);
-
-    // Cerrarlo por defecto si es móvil
-    if (mobile) {
-      setCollapsed(true);
-    }
-
-    const handleResize = () => {
-      const isNowMobile = window.innerWidth <= 768;
-      setIsMobile(isNowMobile);
-      if (isNowMobile) {
-        setCollapsed(true);
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [setCollapsed]);
-
-  useEffect(() => {
-    let scrollY = 0;
-    if (isMobile && !collapsed) {
-      scrollY = window.scrollY;
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
-      document.body.style.overflowY = 'hidden';
-    }
-    return () => {
-      const top = document.body.style.top;
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      document.body.style.overflowY = '';
-      if (top) window.scrollTo(0, -parseInt(top));
-    };
-  }, [isMobile, collapsed]);
-
-  const handleItemClick = () => {
-    if (isMobile) setCollapsed(true);
-  };
+  const [sheet, setSheet] = useState(null); // 'categories' | 'account' | null
+  const closeSheet = () => setSheet(null);
 
   return (
     <>
-      {isMobile && !collapsed && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-40 z-40"
-          onClick={() => setCollapsed(true)}
-        />
-      )}
+      {/* Top bar (desktop and mobile) */}
+      <header className="fixed inset-x-0 top-0 z-40 px-3 pt-3 md:px-6">
+        <GlassPanel className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 md:h-16">
+          <Brand />
 
-      {(!isMobile || !collapsed) && (
-        <aside
-          className={`
-            bg-[#aba599] shadow-md p-3 flex flex-col transition-all duration-300
-            ${collapsed ? 'w-16' : 'w-56'}
-            h-screen
-            ${isMobile ? 'fixed top-0 left-0 z-50' : 'fixed top-0 left-0 z-10'}
-          `}
-        >
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            aria-label={collapsed ? "Abrir menú" : "Cerrar menú"}
-            aria-expanded={!collapsed}
-            className="flex items-center gap-2 px-2 py-2 mb-4 rounded-md hover:bg-[#71675d] transition-colors"
-          >
-            <div className="flex flex-col justify-center items-start gap-[5px]">
-              <span className="block w-6 h-[3px] bg-[#272321] rounded"></span>
-              <span className="block w-6 h-[3px] bg-[#272321] rounded"></span>
-              <span className="block w-6 h-[3px] bg-[#272321] rounded"></span>
-            </div>
-            {!collapsed && <span className="text-sm text-[#272321]">Menú</span>}
-          </button>
-
-          <nav className="flex flex-col gap-2 flex-grow">
-            {menuItems.map((item, index) => (
-              <NavLink
-                key={index}
-                to={item.link}
-                onClick={handleItemClick}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-2 py-2 rounded-md text-sm transition-colors ${
-                    isActive
-                      ? 'bg-[#71675d] text-white'
-                      : 'hover:bg-[#71675d] text-[#272321]'
-                  }`
-                }
-              >
-                {item.icon}
-                {!collapsed && <span>{item.label}</span>}
-              </NavLink>
-            ))}
+          <nav aria-label="Principal" className="hidden items-center gap-1 md:flex">
+            <NavLink to="/" end className={desktopLinkClass}>
+              Inicio
+            </NavLink>
+            <CategoriesMenu />
+            <NavLink to="/contacto" className={desktopLinkClass}>
+              Contacto
+            </NavLink>
           </nav>
 
-          <div className="pt-4 border-t border-[#71675d]">
-            <NavLink
-              to="/carrito"
-              onClick={handleItemClick}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-2 py-2 rounded-md text-sm transition-colors ${
-                  isActive
-                    ? 'bg-[#71675d] text-white'
-                    : 'hover:bg-[#71675d] text-[#272321]'
-                }`
-              }
-            >
-              <div className="relative">
-                <ShoppingCartIcon />
-                {totalCarrito > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-yellow-400 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                    {totalCarrito}
-                  </span>
-                )}
-              </div>
-              {!collapsed && <span>Carrito</span>}
-            </NavLink>
+          <div className="flex items-center gap-1">
+            <CartButton onClick={onOpenCart} />
+            <ThemeToggle className="hidden md:inline-flex" />
+            <div className="hidden md:block">
+              <AccountMenu onOpenAuth={onOpenAuth} />
+            </div>
           </div>
+        </GlassPanel>
+      </header>
 
-          {/* Auth section */}
-          <div className="pt-2 border-t border-[#71675d]">
-            {user ? (
-              <>
-                {/* User info */}
-                <div className={`flex items-center gap-2 px-2 py-2 text-sm text-[#272321] ${collapsed ? 'justify-center' : ''}`}>
-                  {userProfile?.avatar_url ? (
-                    <img
-                      src={userProfile.avatar_url}
-                      alt="Avatar"
-                      className="w-7 h-7 rounded-full object-cover flex-shrink-0"
-                    />
-                  ) : (
-                    <UserIcon size={18} className="flex-shrink-0" />
-                  )}
-                  {!collapsed && (
-                    <span className="truncate text-xs">
-                      {userProfile?.display_name || user.email}
-                    </span>
-                  )}
-                </div>
+      {/* Bottom tab bar (mobile) */}
+      <nav
+        aria-label="Navegación móvil"
+        className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden"
+      >
+        <GlassPanel className="flex items-center justify-around px-2">
+          <BottomBarItem to="/" icon={HomeIcon} label="Inicio" active={pathname === '/'} />
+          <BottomBarItem
+            icon={LayoutGridIcon}
+            label="Categorías"
+            active={pathname.startsWith('/categoria/')}
+            onClick={() => setSheet('categories')}
+            aria-expanded={sheet === 'categories'}
+          />
+          <CartButton onClick={onOpenCart} showLabel className="flex-1" />
+          <BottomBarItem
+            icon={UserIcon}
+            label="Cuenta"
+            active={pathname.startsWith('/admin')}
+            onClick={() => (user ? setSheet('account') : onOpenAuth())}
+            aria-expanded={user ? sheet === 'account' : undefined}
+          />
+        </GlassPanel>
+      </nav>
 
-                {/* Admin link */}
-                {isAdmin && (
-                  <NavLink
-                    to="/admin"
-                    onClick={handleItemClick}
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 px-2 py-2 rounded-md text-sm transition-colors ${
-                        isActive
-                          ? 'bg-[#71675d] text-white'
-                          : 'hover:bg-[#71675d] text-[#272321]'
-                      }`
-                    }
-                  >
-                    <SettingsIcon size={18} />
-                    {!collapsed && <span>Panel Admin</span>}
-                  </NavLink>
+      <Modal isOpen={sheet === 'categories'} onClose={closeSheet} title="Categorías" placement="bottom">
+        <ul className="grid grid-cols-2 gap-2">
+          {CATEGORIES.map((category) => (
+            <li key={category.slug}>
+              <Link
+                to={category.path}
+                onClick={closeSheet}
+                aria-current={pathname === category.path ? 'page' : undefined}
+                className={cn(
+                  'block rounded-md border border-line bg-surface px-4 py-3 text-sm font-medium',
+                  pathname === category.path && 'border-accent text-accent',
                 )}
-
-                {/* Sign out */}
-                <button
-                  onClick={() => {
-                    signOut();
-                    handleItemClick();
-                  }}
-                  className="flex items-center gap-3 px-2 py-2 rounded-md text-sm transition-colors hover:bg-[#71675d] text-[#272321] w-full"
-                >
-                  <LogOutIcon size={18} />
-                  {!collapsed && <span>Cerrar sesión</span>}
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={() => {
-                  onOpenAuth();
-                  handleItemClick();
-                }}
-                className="flex items-center gap-3 px-2 py-2 rounded-md text-sm transition-colors hover:bg-[#71675d] text-[#272321] w-full"
               >
-                <LogInIcon size={18} />
-                {!collapsed && <span>Iniciar sesión</span>}
-              </button>
-            )}
-          </div>
-        </aside>
-      )}
+                {category.title}
+              </Link>
+            </li>
+          ))}
+          <li className="col-span-2">
+            <Link
+              to="/contacto"
+              onClick={closeSheet}
+              className="flex items-center gap-2 rounded-md border border-line bg-surface px-4 py-3 text-sm font-medium"
+            >
+              <MailIcon size={16} aria-hidden="true" />
+              Contacto
+            </Link>
+          </li>
+        </ul>
+      </Modal>
 
-      {isMobile && collapsed && (
-        <button
-          onClick={() => setCollapsed(false)}
-          aria-label="Abrir menú"
-          aria-expanded={false}
-          className="fixed top-4 left-4 z-50 bg-[#aba599] p-2 rounded-md shadow-md hover:bg-[#71675d] transition-colors"
-        >
-          <div className="flex flex-col justify-center items-start gap-[5px]">
-            <span className="block w-6 h-[3px] bg-[#272321] rounded"></span>
-            <span className="block w-6 h-[3px] bg-[#272321] rounded"></span>
-            <span className="block w-6 h-[3px] bg-[#272321] rounded"></span>
+      <Modal
+        isOpen={sheet === 'account' && Boolean(user)}
+        onClose={closeSheet}
+        title={userProfile?.display_name || user?.email || 'Cuenta'}
+        description={user?.email}
+        placement="bottom"
+      >
+        <div className="space-y-2">
+          <div className="flex items-center justify-between rounded-md border border-line bg-surface px-4 py-2 text-sm">
+            <span>Tema</span>
+            <ThemeToggle />
           </div>
-        </button>
-      )}
+          {isAdmin && (
+            <Link
+              to="/admin"
+              onClick={closeSheet}
+              className="flex items-center gap-2 rounded-md border border-line bg-surface px-4 py-3 text-sm font-medium"
+            >
+              <SettingsIcon size={16} aria-hidden="true" />
+              Panel admin
+            </Link>
+          )}
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={() => {
+              closeSheet();
+              signOut();
+            }}
+          >
+            <LogOutIcon size={16} aria-hidden="true" />
+            Cerrar sesión
+          </Button>
+        </div>
+      </Modal>
     </>
   );
 }
