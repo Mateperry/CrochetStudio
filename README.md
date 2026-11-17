@@ -89,6 +89,10 @@ La tienda lee los productos de la vista `productos_completos`, que existe en pro
 
 Las migraciones se aplican en producción solo con confirmación del líder técnico: `supabase link --project-ref <ref>` y `supabase db push`, o pegando la migración en el SQL Editor.
 
+Las tres primeras migraciones (`..._esquema_base`, `..._perfiles_y_roles`, `..._politicas_rls`) describen lo que producción **ya tiene**; están escritas con `if not exists` / `drop policy if exists` para que aplicarlas no borre datos. Si usas `supabase db push` sobre la base existente, márcalas primero como aplicadas con `supabase migration repair --status applied <version>` para que solo se ejecuten las nuevas.
+
+Al aplicar `..._guardado_atomico_productos.sql` el panel admin empieza a guardar con `upsert_product` / `delete_product`. **Despliega el frontend y la migración juntos**: el panel nuevo sin la migración muestra "Falta aplicar la migración de guardado de productos".
+
 ## Imágenes de productos
 
 Las fotos **no** se guardan en el repositorio. Viven en Supabase Storage (bucket `Imagenes`) y la tienda las carga por URL.
