@@ -53,7 +53,10 @@ La app queda en http://localhost:5173.
 | `npm run dev` | Servidor de desarrollo con recarga en caliente |
 | `npm run build` | Compila la app para producción en `dist/` |
 | `npm run preview` | Sirve localmente la compilación de `dist/` |
-| `npm run lint` | Revisa el código con ESLint |
+| `npm run lint` | Revisa el código con ESLint (incluye accesibilidad con jsx-a11y) |
+| `npm test` | Corre las pruebas unitarias con Vitest |
+| `npm run test:watch` | Pruebas en modo observador |
+| `npm run images:optimize -- <entrada> <salida>` | Convierte fotos a WebP optimizado (ver Imágenes) |
 
 ## Base de datos (Supabase)
 
@@ -189,7 +192,7 @@ feature/* · fix/* · refactor/* · style/* · chore/* · docs/*
 
 ### Integración continua
 
-Cada PR hacia `dev`, `test` o `main` (y cada push a `dev`) corre el workflow `.github/workflows/ci.yml`: `npm ci`, `npm run lint` y `npm run build` con Node 20. **El check `ci` debe estar en verde para hacer merge.** Después del primer merge, márcalo como requerido en GitHub → Settings → Branches para `dev`, `test` y `main`.
+Cada PR hacia `dev`, `test` o `main` (y cada push a `dev`) corre el workflow `.github/workflows/ci.yml`: `npm ci`, `npm run lint`, `npm test` y `npm run build` con Node 20. **El check `ci` debe estar en verde para hacer merge.** Después del primer merge, márcalo como requerido en GitHub → Settings → Branches para `dev`, `test` y `main`.
 
 El plan de trabajo completo está en [`docs/PLAN_KIRO.md`](docs/PLAN_KIRO.md) y las reglas para agentes en [`AGENTS.md`](AGENTS.md).
 
