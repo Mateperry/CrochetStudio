@@ -10,7 +10,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "images:optimize": "node scripts/optimize-images.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.103.2",
@@ -36,6 +37,7 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
     "postcss": "^8.5.6",
+    "sharp": "^0.34.4",
     "tailwindcss": "^3.4.17",
     "vite": "^7.0.3"
   }

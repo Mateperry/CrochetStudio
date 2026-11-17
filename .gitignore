@@ -27,3 +27,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Imagenes originales: se optimizan con npm run images:optimize y se suben a Supabase Storage
+src/Image/

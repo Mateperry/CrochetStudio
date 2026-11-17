@@ -53,6 +53,24 @@ La app queda en http://localhost:5173.
 | `npm run preview` | Sirve localmente la compilación de `dist/` |
 | `npm run lint` | Revisa el código con ESLint |
 
+## Imágenes de productos
+
+Las fotos **no** se guardan en el repositorio. Viven en Supabase Storage (bucket `Imagenes`) y la tienda las carga por URL.
+
+Para agregar fotos nuevas:
+
+1. Pon los originales en una carpeta local (por ejemplo `src/Image/`, que está en `.gitignore`).
+2. Optimízalas a WebP:
+
+   ```bash
+   npm run images:optimize -- src/Image salida-webp
+   ```
+
+   Por cada foto se generan `<nombre>.webp` (máx. 1200 px de ancho) y `<nombre>-thumb.webp` (480 px), con calidad 80.
+3. En Supabase → Storage → bucket `Imagenes`, sube los `.webp`.
+4. Copia la URL pública de cada archivo (botón *Get URL*).
+5. En la tienda, entra a `/admin`, crea o edita el producto y pega las URLs en la sección *Imágenes*.
+
 ## Estructura de carpetas
 
 Estructura actual:
