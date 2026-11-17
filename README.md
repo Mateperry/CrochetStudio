@@ -39,6 +39,8 @@ La app queda en http://localhost:5173.
 | --- | --- | --- |
 | `VITE_SUPABASE_URL` | URL del proyecto de Supabase | Supabase → Project Settings → API → Project URL |
 | `VITE_SUPABASE_ANON_KEY` | Clave pública (anon) | Supabase → Project Settings → API → anon public |
+| `VITE_FORMSPREE_ENDPOINT` | URL del formulario de Contacto (`https://formspree.io/f/<id>`). Sin ella, Contacto muestra un error y el correo de contacto | Formspree → tu formulario → Integration |
+| `VITE_WHATSAPP_NUMBER` | Opcional. Número en formato internacional sin `+` ni espacios (ej. `573001234567`). Activa el botón de WhatsApp en Contacto y el pedido por WhatsApp en el checkout | — |
 
 - Copia `.env.example` a `.env.local` y pon los valores ahí.
 - **Nunca** subas `.env.local` al repositorio (ya está en `.gitignore`).
