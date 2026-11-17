@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import { useCart } from "../features/cart/useCart";
 
-const ProductDetailPage = ({ productos, agregarAlCarrito }) => {
+const ProductDetailPage = ({ productos }) => {
+  const { add } = useCart();
   const { id } = useParams();
   const producto = productos.find((p) => p.id === parseInt(id));
   // Selected image is stored per product id, so navigating to another product
@@ -26,7 +28,7 @@ const ProductDetailPage = ({ productos, agregarAlCarrito }) => {
   };
 
   const handleAgregar = () => {
-    agregarAlCarrito({ ...producto, cantidad: parseInt(cantidad) });
+    add(producto.id, parseInt(cantidad, 10));
   };
 
   return (

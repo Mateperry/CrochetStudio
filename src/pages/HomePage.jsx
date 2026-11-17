@@ -4,7 +4,7 @@ import { CATEGORIES, filterProductsByCategory } from "../constants/categories";
 
 const MAX_PRODUCTS_PER_SECTION = 8;
 
-const HomePage = ({ productos, agregarAlCarrito }) => {
+const HomePage = ({ productos }) => {
   return (
     <>
       <Hero />
@@ -14,7 +14,6 @@ const HomePage = ({ productos, agregarAlCarrito }) => {
             key={category.slug}
             category={category}
             productos={filterProductsByCategory(productos, category).slice(0, MAX_PRODUCTS_PER_SECTION)}
-            agregarAlCarrito={agregarAlCarrito}
           />
         ))}
       </div>

@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
+import { useCart } from "../cart/useCart";
 
-function ProductGrid({ productos, agregarAlCarrito }) {
+function ProductGrid({ productos }) {
+  const { add } = useCart();
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-4">
       {productos.map((producto) => {
@@ -43,7 +46,7 @@ function ProductGrid({ productos, agregarAlCarrito }) {
             )}
 
             <button
-              onClick={() => agregarAlCarrito(producto)}
+              onClick={() => add(producto.id)}
               className="mt-3 bg-[#938a7c] hover:bg-[#71675d] text-[#272321] px-4 py-2 rounded w-full"
             >
               Agregar al carrito

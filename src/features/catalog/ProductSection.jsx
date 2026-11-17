@@ -4,7 +4,6 @@ import ProductGrid from "./ProductGrid";
 const ProductSection = ({
   category,
   productos,
-  agregarAlCarrito,
   mostrarVerMas = true
 }) => {
   const location = useLocation();
@@ -29,10 +28,7 @@ const ProductSection = ({
         )}
       </div>
 
-      <ProductGrid
-        productos={productos}
-        agregarAlCarrito={agregarAlCarrito}
-      />
+      <ProductGrid productos={productos} />
     </section>
   );
 };

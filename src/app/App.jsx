@@ -1,54 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Navigation from "../components/layout/Navigation";
 import ScrollToTop from "../components/layout/ScrollToTop";
 import AuthModal from "../features/auth/AuthModal";
 import { useProducts } from "../features/catalog/hooks/useProducts";
+import { useCart } from "../features/cart/useCart";
 import AppRoutes from "./routes";
 
 export default function App() {
   const [collapsed, setCollapsed] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { data: productos, isLoading, error } = useProducts();
-
-  const [carrito, setCarrito] = useState(() => {
-    // Recuperar del localStorage al inicio
-    const guardado = localStorage.getItem("carrito");
-    return guardado ? JSON.parse(guardado) : [];
-  });
-
-  const agregarAlCarrito = (productoNuevo) => {
-    setCarrito((prev) => {
-      const index = prev.findIndex((p) => p.id === productoNuevo.id);
-      if (index !== -1) {
-        alert("⚠️ El producto ya está en el carrito.");
-        return prev;
-      }
-
-      // Forzar cantidad mínima de 1
-      const cantidadValida = productoNuevo.cantidad && productoNuevo.cantidad >= 1 && productoNuevo.cantidad <= 10
-        ? productoNuevo.cantidad
-        : 1;
-
-      const nuevoProducto = {
-        ...productoNuevo,
-        cantidad: cantidadValida,
-      };
-
-      alert("🛒 Producto agregado al carrito.");
-      return [...prev, nuevoProducto];
-    });
-  };
-
-  const eliminarDelCarrito = (index) => {
-    const nuevoCarrito = [...carrito];
-    nuevoCarrito.splice(index, 1);
-    setCarrito(nuevoCarrito);
-  };
-
-  // Guardar carrito en localStorage cada vez que cambie
-  useEffect(() => {
-    localStorage.setItem("carrito", JSON.stringify(carrito));
-  }, [carrito]);
+  const { count } = useCart();
 
   if (isLoading) {
     return (
@@ -84,19 +46,12 @@ export default function App() {
       <Navigation
         collapsed={collapsed}
         setCollapsed={setCollapsed}
-        totalCarrito={carrito.length}
+        totalCarrito={count}
         onOpenAuth={() => setShowAuthModal(true)}
       />
 
       <main className={`transition-all duration-300 p-4 ${collapsed ? 'md:ml-16' : 'md:ml-56'} ml-0`}>
-        <AppRoutes
-          productos={productos}
-          agregarAlCarrito={agregarAlCarrito}
-          carrito={carrito}
-          setCarrito={setCarrito}
-          eliminarDelCarrito={eliminarDelCarrito}
-          onRequireAuth={() => setShowAuthModal(true)}
-        />
+        <AppRoutes productos={productos} onRequireAuth={() => setShowAuthModal(true)} />
       </main>
     </div>
   );

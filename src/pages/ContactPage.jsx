@@ -1,11 +1,14 @@
-import React from 'react';
+import { useState } from 'react';
 
 const ContactPage = () => {
   const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xpwdewja';
+  const [status, setStatus] = useState({ type: 'idle', message: '' });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
+    const form = e.target;
+    const formData = new FormData(form);
+    setStatus({ type: 'sending', message: '' });
 
     try {
       const response = await fetch(FORMSPREE_ENDPOINT, {
@@ -15,21 +18,20 @@ const ContactPage = () => {
       });
 
       if (response.ok) {
-        alert('¡Mensaje enviado con éxito! 💌 Te responderemos pronto.');
-        e.target.reset();
+        setStatus({ type: 'success', message: '¡Mensaje enviado con éxito! Te responderemos pronto.' });
+        form.reset();
       } else {
-        const data = await response.json();
-        alert(
-          `Error: ${
-            data.errors
-              ? data.errors.map((err) => err.message).join(', ')
-              : 'Ocurrió un error inesperado.'
-          }`
-        );
+        const data = await response.json().catch(() => ({}));
+        setStatus({
+          type: 'error',
+          message: data.errors
+            ? data.errors.map((err) => err.message).join(', ')
+            : 'Ocurrió un error inesperado.',
+        });
       }
     } catch (error) {
       console.error('Error al enviar:', error);
-      alert('No se pudo enviar el mensaje. Inténtalo más tarde.');
+      setStatus({ type: 'error', message: 'No se pudo enviar el mensaje. Inténtalo más tarde.' });
     }
   };
 
@@ -83,11 +85,21 @@ const ContactPage = () => {
           ></textarea>
         </div>
 
+        {status.message && (
+          <p
+            role={status.type === 'error' ? 'alert' : 'status'}
+            className={status.type === 'error' ? 'text-sm text-red-700' : 'text-sm text-green-700'}
+          >
+            {status.message}
+          </p>
+        )}
+
         <button
           type="submit"
-          className="w-full py-2 px-4 bg-yellow-400 hover:bg-yellow-300 text-[#272321] text-sm font-medium rounded-md shadow transition"
+          disabled={status.type === 'sending'}
+          className="w-full py-2 px-4 bg-yellow-400 hover:bg-yellow-300 text-[#272321] text-sm font-medium rounded-md shadow transition disabled:opacity-60"
         >
-          Enviar mensaje
+          {status.type === 'sending' ? 'Enviando...' : 'Enviar mensaje'}
         </button>
       </form>
 

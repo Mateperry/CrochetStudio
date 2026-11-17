@@ -1,7 +1,7 @@
 import ProductSection from "../features/catalog/ProductSection";
 import { getCategoryBySlug, filterProductsByCategory } from "../constants/categories";
 
-const CategoryPage = ({ slug, productos, agregarAlCarrito }) => {
+const CategoryPage = ({ slug, productos }) => {
   const category = getCategoryBySlug(slug);
 
   if (!category || !productos) {
@@ -13,7 +13,6 @@ const CategoryPage = ({ slug, productos, agregarAlCarrito }) => {
       <ProductSection
         category={category}
         productos={filterProductsByCategory(productos, category)}
-        agregarAlCarrito={agregarAlCarrito}
         mostrarVerMas={false}
       />
     </div>

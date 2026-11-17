@@ -15,8 +15,8 @@ import ContactPage from "../pages/ContactPage";
 import AdminDashboardPage from "../pages/admin/AdminDashboardPage";
 import ProtectedRoute from "../features/auth/ProtectedRoute";
 
-export default function AppRoutes({ productos, agregarAlCarrito, carrito, setCarrito, eliminarDelCarrito, onRequireAuth }) {
-  const catalogProps = { productos, agregarAlCarrito };
+export default function AppRoutes({ productos, onRequireAuth }) {
+  const catalogProps = { productos };
 
   return (
     <Routes>
@@ -33,13 +33,7 @@ export default function AppRoutes({ productos, agregarAlCarrito, carrito, setCar
       <Route path="/contacto" element={<ContactPage />} />
       <Route
         path="/carrito"
-        element={
-          <CartPage
-            carrito={carrito}
-            setCarrito={setCarrito}
-            eliminarDelCarrito={eliminarDelCarrito}
-          />
-        }
+        element={<CartPage />}
       />
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route
