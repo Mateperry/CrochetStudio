@@ -1,28 +1,28 @@
+import Button from '../../components/ui/Button';
+
 /**
- * Loading and error states for pages that depend on the product catalog.
+ * Generic loading state with an accessible status message.
  */
 export function CatalogLoading({ label = 'Cargando productos...' }) {
   return (
     <div role="status" className="flex flex-col items-center justify-center py-24">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-[#71675d]" aria-hidden="true"></div>
-      <p className="mt-4 text-[#272321]">{label}</p>
+      <span className="h-10 w-10 animate-spin rounded-full border-4 border-line border-t-accent" aria-hidden="true" />
+      <p className="mt-4 text-sm text-ink-muted">{label}</p>
     </div>
   );
 }
 
+/**
+ * Error state for pages that depend on the product catalog. "Reintentar" calls refetch().
+ */
 export function CatalogError({ onRetry, isRetrying = false }) {
   return (
-    <div role="alert" className="flex flex-col items-center justify-center py-24 text-center">
-      <h2 className="text-2xl font-bold text-[#272321] mb-2">No pudimos cargar los productos</h2>
-      <p className="text-[#272321] mb-4">Revisa tu conexión e inténtalo de nuevo.</p>
-      <button
-        type="button"
-        onClick={onRetry}
-        disabled={isRetrying}
-        className="px-6 py-2 bg-[#71675d] text-white rounded-full hover:bg-[#5a5148] transition-colors disabled:opacity-60"
-      >
-        {isRetrying ? 'Reintentando...' : 'Reintentar'}
-      </button>
+    <div role="alert" className="rounded-lg border border-line bg-surface px-6 py-16 text-center">
+      <h2 className="font-display text-2xl font-semibold">No pudimos cargar los productos</h2>
+      <p className="mt-2 text-ink-muted">Revisa tu conexión e inténtalo de nuevo.</p>
+      <Button className="mt-6" onClick={onRetry} loading={isRetrying} loadingText="Reintentando...">
+        Reintentar
+      </Button>
     </div>
   );
 }

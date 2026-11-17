@@ -1,68 +1,35 @@
-import { Link } from "react-router-dom";
-import { useCart } from "../cart/useCart";
+import ProductCard from './ProductCard';
+import Skeleton from '../../components/ui/Skeleton';
+import { cn } from '../../lib/cn';
 
-function ProductGrid({ productos }) {
-  const { add } = useCart();
+const GRID_CLASSES = 'grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-5 lg:grid-cols-4';
 
+/**
+ * Responsive product grid. `priorityFirst` loads the first image eagerly.
+ */
+export default function ProductGrid({ products, priorityFirst = false, className }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-4">
-      {productos.map((producto) => {
-        const descuento = producto.precioPromocional
-          ? Math.round(((producto.precio - producto.precioPromocional) / producto.precio) * 100)
-          : null;
-
-        return (
-          <div
-            key={producto.id}
-            className="border p-4 rounded-lg shadow-md text-center bg-[#aba599]"
-          >
-            <Link to={`/producto/${producto.id}`}>
-              <img
-                src={producto.imagenes[0]}
-                alt={producto.nombre}
-                className="w-full h-60 object-cover mb-2 rounded hover:opacity-90 transition"
-              />
-            </Link>
-
-            <h3 className="text-lg font-semibold">{producto.nombre}</h3>
-            <p className="text-[#272321]">{producto.descripcion}</p>
-
-            {producto.precioPromocional ? (
-              <div className="text-center mt-2 space-y-1">
-                <span className="text-sm text-gray-700 line-through block">
-                  ${producto.precio.toLocaleString()}
-                </span>
-                <span className="text-lg font-bold text-gray-900 block">
-                  ${producto.precioPromocional.toLocaleString()}
-                </span>
-                <span className="text-xs text-green-600 font-semibold bg-green-100 px-2 py-0.5 rounded ml-2">
-                  {descuento}% OFF
-                </span>
-              </div>
-            ) : (
-              <p className="text-lg font-bold text-gray-900 mt-2">
-                ${producto.precio.toLocaleString()}
-              </p>
-            )}
-
-            <button
-              onClick={() => add(producto.id)}
-              className="mt-3 bg-[#938a7c] hover:bg-[#71675d] text-[#272321] px-4 py-2 rounded w-full"
-            >
-              Agregar al carrito
-            </button>
-
-            <Link
-              to={`/producto/${producto.id}`}
-              className="mt-2 inline-block bg-white hover:bg-[#ddd3c4] text-[#272321] px-4 py-2 rounded w-full text-center"
-            >
-              Ver detalle
-            </Link>
-          </div>
-        );
-      })}
-    </div>
+    <ul className={cn(GRID_CLASSES, className)}>
+      {products.map((product, index) => (
+        <li key={product.id} className="flex">
+          <ProductCard product={product} priority={priorityFirst && index === 0} className="w-full" />
+        </li>
+      ))}
+    </ul>
   );
 }
 
-export default ProductGrid;
+export function ProductGridSkeleton({ count = 8, className }) {
+  return (
+    <div role="status" className={cn(GRID_CLASSES, className)}>
+      <span className="sr-only">Cargando productos...</span>
+      {Array.from({ length: count }, (_, index) => (
+        <div key={index} className="space-y-3">
+          <Skeleton className="aspect-[4/5] w-full rounded-lg" />
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-4 w-1/3" />
+        </div>
+      ))}
+    </div>
+  );
+}
