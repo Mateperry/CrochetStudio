@@ -107,6 +107,10 @@ feature/* · fix/* · refactor/* · style/* · chore/* · docs/*
 - Los PR usan la plantilla `.github/pull_request_template.md`.
 - Nunca se hace push directo a `main` ni a `test`.
 
+### Integración continua
+
+Cada PR hacia `dev`, `test` o `main` (y cada push a `dev`) corre el workflow `.github/workflows/ci.yml`: `npm ci`, `npm run lint` y `npm run build` con Node 20. **El check `ci` debe estar en verde para hacer merge.** Después del primer merge, márcalo como requerido en GitHub → Settings → Branches para `dev`, `test` y `main`.
+
 El plan de trabajo completo está en [`docs/PLAN_KIRO.md`](docs/PLAN_KIRO.md) y las reglas para agentes en [`AGENTS.md`](AGENTS.md).
 
 ## Despliegue en Vercel
