@@ -53,6 +53,42 @@ La app queda en http://localhost:5173.
 | `npm run preview` | Sirve localmente la compilación de `dist/` |
 | `npm run lint` | Revisa el código con ESLint |
 
+## Base de datos (Supabase)
+
+Todo el esquema vive en `supabase/migrations/` y los datos de ejemplo en `supabase/seed.sql`. Nunca se cambia la base a mano: cada cambio es una migración nueva.
+
+### Base local
+
+Requiere [Supabase CLI](https://supabase.com/docs/guides/cli) y Docker Desktop abierto.
+
+```bash
+supabase start      # levanta Postgres, Auth y Storage en Docker
+supabase db reset   # recrea la base: aplica migraciones y carga seed.sql
+```
+
+`supabase start` imprime la `API URL` (normalmente `http://127.0.0.1:54321`) y la `anon key`. Ponlas en `.env.local`:
+
+```bash
+VITE_SUPABASE_URL=http://127.0.0.1:54321
+VITE_SUPABASE_ANON_KEY=<anon key que imprimió supabase start>
+```
+
+Para tener un administrador local: regístrate en la app, abre Supabase Studio (`http://127.0.0.1:54323`) → SQL Editor y ejecuta:
+
+```sql
+update user_profiles set role = 'admin' where email = '<tu-correo>';
+```
+
+Cierra sesión y vuelve a entrar.
+
+### Vista `productos_completos` (pendiente)
+
+La tienda lee los productos de la vista `productos_completos`, que existe en producción pero todavía **no** está versionada. Hasta agregar su migración, la base local no muestra productos. Para obtener la definición: Supabase → SQL Editor → `select pg_get_viewdef('public.productos_completos', true);`.
+
+### Producción
+
+Las migraciones se aplican en producción solo con confirmación del líder técnico: `supabase link --project-ref <ref>` y `supabase db push`, o pegando la migración en el SQL Editor.
+
 ## Imágenes de productos
 
 Las fotos **no** se guardan en el repositorio. Viven en Supabase Storage (bucket `Imagenes`) y la tienda las carga por URL.
