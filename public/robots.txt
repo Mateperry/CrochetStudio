@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /checkout
+Disallow: /carrito
+Disallow: /pedido/
+
+# Cambia el dominio de ejemplo por el dominio real (ver README, sección SEO).
+Sitemap: https://crochetstudio.example.com/sitemap.xml

@@ -1,0 +1,82 @@
+/*
+ * Design tokens — paleta "Algodón y terracota".
+ * Colors are stored as RGB channels so Tailwind can apply opacity (e.g. bg-accent/20).
+ * Change ONLY these values to adjust the palette; components use the Tailwind names.
+ */
+:root {
+  color-scheme: light;
+
+  --color-bg: 250 247 242;            /* #FAF7F2 */
+  --color-surface: 255 255 255;       /* #FFFFFF */
+  --color-surface-muted: 242 237 230; /* #F2EDE6 */
+  --color-ink: 42 36 32;              /* #2A2420 */
+  --color-ink-muted: 107 98 90;       /* #6B625A */
+  --color-line: 230 223 214;          /* #E6DFD6 */
+  --color-accent: 176 74 51;          /* #B04A33 */
+  --color-accent-soft: 246 227 220;   /* #F6E3DC */
+  --color-on-accent: 255 255 255;     /* text on accent buttons */
+  --color-sage: 124 154 133;          /* #7C9A85 */
+  --color-success: 47 125 91;         /* #2F7D5B */
+  --color-danger: 180 35 24;          /* #B42318 */
+
+  --glass-bg: rgba(255, 255, 255, 0.62);
+  --glass-border: rgba(255, 255, 255, 0.55);
+  --glass-blur: 16px;
+  --glass-fallback: rgb(255 255 255 / 0.96);
+
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  --shadow-sm: 0 1px 2px rgb(42 36 32 / 0.06), 0 1px 3px rgb(42 36 32 / 0.04);
+  --shadow-md: 0 8px 24px rgb(42 36 32 / 0.08), 0 2px 6px rgb(42 36 32 / 0.04);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-bg: 23 20 18;               /* #171412 */
+  --color-surface: 33 29 26;          /* #211D1A */
+  --color-surface-muted: 42 37 34;    /* #2A2522 */
+  --color-ink: 243 237 230;           /* #F3EDE6 */
+  --color-ink-muted: 184 174 164;     /* #B8AEA4 */
+  --color-line: 58 51 46;             /* #3A332E */
+  --color-accent: 224 122 95;         /* #E07A5F */
+  --color-accent-soft: 59 37 32;      /* #3B2520 */
+  --color-on-accent: 23 20 18;        /* dark text on the lighter dark-mode accent */
+  --color-sage: 157 184 165;          /* #9DB8A5 */
+  --color-success: 95 180 140;        /* #5FB48C */
+  --color-danger: 240 128 112;        /* #F08070 */
+
+  --glass-bg: rgba(33, 29, 26, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-fallback: rgb(33 29 26 / 0.97);
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 8px 24px rgb(0 0 0 / 0.35);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --color-bg: 23 20 18;
+    --color-surface: 33 29 26;
+    --color-surface-muted: 42 37 34;
+    --color-ink: 243 237 230;
+    --color-ink-muted: 184 174 164;
+    --color-line: 58 51 46;
+    --color-accent: 224 122 95;
+    --color-accent-soft: 59 37 32;
+    --color-on-accent: 23 20 18;
+    --color-sage: 157 184 165;
+    --color-success: 95 180 140;
+    --color-danger: 240 128 112;
+
+    --glass-bg: rgba(33, 29, 26, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-fallback: rgb(33 29 26 / 0.97);
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+    --shadow-md: 0 8px 24px rgb(0 0 0 / 0.35);
+  }
+}
