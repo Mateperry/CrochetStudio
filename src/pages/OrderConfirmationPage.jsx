@@ -5,6 +5,7 @@ import { buttonClasses } from '../components/ui/classes';
 import { getDefaultPaymentMethod } from '../features/checkout/payment';
 import { formatPrice } from '../lib/formatPrice';
 import NotFoundPage from './NotFoundPage';
+import PageMeta from '../components/layout/PageMeta';
 
 export default function OrderConfirmationPage() {
   const { id } = useParams();
@@ -17,6 +18,7 @@ export default function OrderConfirmationPage() {
 
   return (
     <section className="mx-auto max-w-xl space-y-6 py-6 text-center">
+      <PageMeta title="Pedido recibido" />
       <CheckCircle2Icon size={56} className="mx-auto text-success" aria-hidden="true" />
       <div>
         <h1 className="font-display text-3xl font-semibold">¡Pedido recibido!</h1>

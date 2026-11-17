@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Dominio de ejemplo: reemplaza https://crochetstudio.example.com por el dominio real (ver README, sección SEO). -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://crochetstudio.example.com/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://crochetstudio.example.com/contacto</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://crochetstudio.example.com/categoria/novedades</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://crochetstudio.example.com/categoria/ofertas</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://crochetstudio.example.com/categoria/anime</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://crochetstudio.example.com/categoria/peliculas</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://crochetstudio.example.com/categoria/series</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://crochetstudio.example.com/categoria/fantasia</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://crochetstudio.example.com/categoria/animales</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://crochetstudio.example.com/categoria/personalizados</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+</urlset>

@@ -9,6 +9,7 @@ import Select from '../components/ui/Select';
 import { buttonClasses } from '../components/ui/classes';
 import { cn } from '../lib/cn';
 import NotFoundPage from './NotFoundPage';
+import PageMeta from '../components/layout/PageMeta';
 
 function FilterChip({ active, onClick, children }) {
   return (
@@ -49,6 +50,10 @@ export default function CategoryPage() {
 
   return (
     <div className="space-y-6">
+      <PageMeta
+        title={category.title}
+        description={`Amigurumis de ${category.title.toLowerCase()} tejidos a mano en Crochet Studio.`}
+      />
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="font-display text-3xl font-semibold md:text-4xl">{category.title}</h1>

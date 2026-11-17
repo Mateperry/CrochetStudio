@@ -17,6 +17,8 @@ import { formatPrice } from '../lib/formatPrice';
 import { getUnitPrice } from '../lib/pricing';
 import { cn } from '../lib/cn';
 import NotFoundPage from './NotFoundPage';
+import PageMeta from '../components/layout/PageMeta';
+import { toMetaDescription } from '../lib/seo';
 
 const RELATED_COUNT = 4;
 
@@ -136,6 +138,12 @@ export default function ProductDetailPage() {
 
   return (
     <div className="space-y-16">
+      <PageMeta
+        title={product.nombre}
+        description={toMetaDescription(product.descripcion) || undefined}
+        image={product.imagenes?.[0]}
+        type="product"
+      />
       <article className="grid gap-8 md:grid-cols-2 md:gap-12">
         <Gallery product={product} />
 

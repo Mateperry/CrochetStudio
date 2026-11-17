@@ -10,6 +10,7 @@ import { useCreateOrder } from '../features/checkout/hooks/useCreateOrder';
 import { MAX_NOTES_LENGTH, toOrderPayload, validateCheckoutForm } from '../features/checkout/validateCheckoutForm';
 import { CatalogLoading } from '../features/catalog/CatalogStatus';
 import { formatPrice } from '../lib/formatPrice';
+import PageMeta from '../components/layout/PageMeta';
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -66,6 +67,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="space-y-6">
+      <PageMeta title="Finalizar compra" />
       <h1 className="font-display text-3xl font-semibold md:text-4xl">Finalizar compra</h1>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-start">

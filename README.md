@@ -108,6 +108,13 @@ Viven en `src/features/checkout/payment/`. Cada método es un objeto `{ id, labe
 - **WhatsApp** (actual): con `VITE_WHATSAPP_NUMBER` configurado, la confirmación muestra un botón que abre WhatsApp con el resumen del pedido.
 - **Agregar una pasarela** (Wompi, Mercado Pago, ePayco): crea `payment/<pasarela>Payment.js` con la misma forma. `getUrl(order)` debe devolver la URL de pago que genere la pasarela (normalmente desde una Edge Function de Supabase que firme la transacción con la llave privada; **nunca** pongas llaves privadas en variables `VITE_*`). Agrégalo al arreglo `PAYMENT_METHODS`.
 
+## SEO y accesibilidad
+
+- Cada página fija su título (`<Página> · Crochet Studio`) y descripción con `src/components/layout/PageMeta.jsx`; el detalle de producto agrega Open Graph con el nombre, la descripción y la primera imagen.
+- `index.html` trae etiquetas genéricas de Open Graph/Twitter para los buscadores y redes que no ejecutan JavaScript.
+- `public/robots.txt` y `public/sitemap.xml` usan el dominio de ejemplo `https://crochetstudio.example.com`. **Cámbialo por el dominio real** en ambos archivos antes de publicar.
+- `npm run lint` incluye `eslint-plugin-jsx-a11y`. Para revisar contraste, etiquetas y foco en el navegador usa la extensión [axe DevTools](https://www.deque.com/axe/devtools/) en cada pantalla.
+
 ## Imágenes de productos
 
 Las fotos **no** se guardan en el repositorio. Viven en Supabase Storage (bucket `Imagenes`) y la tienda las carga por URL.

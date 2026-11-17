@@ -1,4 +1,5 @@
 import Hero from '../features/catalog/Hero';
+import PageMeta from '../components/layout/PageMeta';
 import ProductSection from '../features/catalog/ProductSection';
 import { ProductGridSkeleton } from '../features/catalog/ProductGrid';
 import { CatalogError } from '../features/catalog/CatalogStatus';
@@ -20,6 +21,7 @@ export default function HomePage() {
 
   return (
     <>
+      <PageMeta />
       <Hero targetId={FIRST_SECTION_ID} />
       <div id={sections.length === 0 ? FIRST_SECTION_ID : undefined} className="scroll-mt-28 space-y-14 pt-4">
         {isPending && <ProductGridSkeleton />}

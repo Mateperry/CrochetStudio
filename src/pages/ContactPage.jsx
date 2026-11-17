@@ -7,6 +7,7 @@ import Textarea from '../components/ui/Textarea';
 import { buttonClasses } from '../components/ui/classes';
 import { validateContactForm, MAX_MESSAGE_LENGTH } from '../features/contact/validateContactForm';
 import { buildWhatsAppUrl, getWhatsAppNumber } from '../lib/whatsapp';
+import PageMeta from '../components/layout/PageMeta';
 
 const FORMSPREE_ENDPOINT = import.meta.env.VITE_FORMSPREE_ENDPOINT;
 const CONTACT_EMAIL = 'castromateo2004@gmail.com';
@@ -64,6 +65,7 @@ export default function ContactPage() {
 
   return (
     <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[1fr_20rem]">
+      <PageMeta title="Contacto" description="Escríbenos para preguntas, ideas o un amigurumi personalizado." />
       <section aria-labelledby="contacto-titulo" className="space-y-6">
         <div>
           <h1 id="contacto-titulo" className="font-display text-3xl font-semibold md:text-4xl">
