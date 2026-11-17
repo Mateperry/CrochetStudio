@@ -1,148 +1,225 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
-import { useCart } from "../features/cart/useCart";
-import { useProducts } from "../features/catalog/hooks/useProducts";
-import { CatalogError, CatalogLoading } from "../features/catalog/CatalogStatus";
-import NotFoundPage from "./NotFoundPage";
+import { useMemo, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { ImageOffIcon } from 'lucide-react';
+import Badge from '../components/ui/Badge';
+import Button from '../components/ui/Button';
+import GlassPanel from '../components/ui/GlassPanel';
+import Skeleton from '../components/ui/Skeleton';
+import Price from '../features/catalog/Price';
+import ProductCard from '../features/catalog/ProductCard';
+import QuantityStepper from '../features/catalog/QuantityStepper';
+import { CatalogError } from '../features/catalog/CatalogStatus';
+import { useProducts } from '../features/catalog/hooks/useProducts';
+import { useCart } from '../features/cart/useCart';
+import { clampQuantity } from '../features/cart/cartReducer';
+import { CATEGORIES } from '../constants/categories';
+import { formatPrice } from '../lib/formatPrice';
+import { getUnitPrice } from '../lib/pricing';
+import { cn } from '../lib/cn';
+import NotFoundPage from './NotFoundPage';
 
-const ProductDetailPage = () => {
-  const { add } = useCart();
-  const { id } = useParams();
-  const { data: productos, isPending, isError, refetch, isFetching } = useProducts();
-  const productId = /^\d+$/.test(id ?? "") ? Number(id) : null;
-  const producto = productId ? productos?.find((p) => p.id === productId) : undefined;
-  // Selected image is stored per product id, so navigating to another product
-  // falls back to that product's first image.
-  const [seleccion, setSeleccion] = useState({ id: null, imagen: null });
-  const imagenPrincipal =
-    seleccion.id === id && seleccion.imagen ? seleccion.imagen : producto?.imagenes[0];
-  const setImagenPrincipal = (imagen) => setSeleccion({ id, imagen });
-  const [cantidad, setCantidad] = useState(1);
+const RELATED_COUNT = 4;
 
-  if (productId && isPending) return <CatalogLoading label="Cargando producto..." />;
-  if (productId && isError) return <CatalogError onRetry={() => refetch()} isRetrying={isFetching} />;
+const SPEC_FIELDS = [
+  { key: 'personaje', label: 'Personaje' },
+  { key: 'tipoLana', label: 'Tipo de lana' },
+  { key: 'aguja', label: 'Aguja' },
+  { key: 'dificultad', label: 'Dificultad' },
+  { key: 'tamaño', label: 'Tamaño' },
+  { key: 'tiempoEstimado', label: 'Tiempo estimado' },
+  { key: 'detalles', label: 'Detalles' },
+];
 
-  if (!producto) {
-    return <NotFoundPage title="Producto no encontrado" message="Este producto no existe o ya no está disponible." />;
-  }
+function getCategoryLink(name) {
+  return CATEGORIES.find((category) => category.dbName === name)?.path ?? null;
+}
 
-  const calcularDescuento = () => {
-    if (!producto.precioPromocional) return null;
-    const porcentaje =
-      ((producto.precio - producto.precioPromocional) / producto.precio) * 100;
-    return Math.round(porcentaje);
-  };
+function getRelatedProducts(products, product) {
+  const mainCategory = product.categorias.find((name) => getCategoryLink(name)) ?? product.categorias[0];
+  if (!mainCategory) return [];
+  return products
+    .filter((item) => item.id !== product.id && item.categorias.includes(mainCategory))
+    .slice(0, RELATED_COUNT);
+}
 
-  const handleAgregar = () => {
-    add(producto.id, parseInt(cantidad, 10));
-  };
+function Gallery({ product }) {
+  const images = product.imagenes ?? [];
+  // The selection is keyed by product id, so it resets when navigating to another product.
+  const [selection, setSelection] = useState({ productId: product.id, index: 0 });
+  const index = selection.productId === product.id ? selection.index : 0;
+  const current = images[index] ?? images[0];
 
   return (
-    <div className="max-w-5xl mx-auto mt-5 p-4 bg-[#aba599] rounded-lg shadow-md">
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Galería de imágenes */}
-        <div className="w-full md:w-1/2">
+    <div className="space-y-3">
+      <div className="aspect-[4/5] overflow-hidden rounded-lg border border-line bg-surface-muted">
+        {current ? (
           <img
-            src={imagenPrincipal}
-            alt={producto.nombre}
-            className="w-full h-[22.5rem] object-cover rounded"
+            src={current}
+            alt={product.nombre}
+            width="800"
+            height="1000"
+            fetchPriority="high"
+            decoding="async"
+            className="h-full w-full object-cover"
           />
-
-          <div className="flex gap-2 mt-4 overflow-x-auto">
-            {producto.imagenes.map((img, i) => (
-              <img
-                key={i}
-                src={img}
-                alt={`Miniatura ${i + 1}`}
-                onClick={() => setImagenPrincipal(img)}
-                className={`w-20 h-20 object-cover rounded cursor-pointer border ${
-                  img === imagenPrincipal
-                    ? "border-gray-500"
-                    : "border-transparent"
-                }`}
-              />
-            ))}
+        ) : (
+          <div className="flex h-full items-center justify-center text-ink-muted">
+            <ImageOffIcon size={40} aria-hidden="true" />
+            <span className="sr-only">Sin imagen</span>
           </div>
-        </div>
+        )}
+      </div>
 
-        {/* Detalles del producto */}
-        <div className="flex-1 text-[#272321] space-y-4">
-          <h1 className="text-3xl font-bold">{producto.nombre}</h1>
-          <p className="text-gray-700">{producto.descripcion}</p>
+      {images.length > 1 && (
+        <ul className="flex gap-2 overflow-x-auto pb-1">
+          {images.map((image, i) => (
+            <li key={`${image}-${i}`}>
+              <button
+                type="button"
+                onClick={() => setSelection({ productId: product.id, index: i })}
+                aria-label={`Ver imagen ${i + 1}`}
+                aria-pressed={i === index}
+                className={cn(
+                  'h-20 w-16 overflow-hidden rounded-md border-2 transition-colors',
+                  i === index ? 'border-accent' : 'border-transparent opacity-80 hover:opacity-100',
+                )}
+              >
+                <img src={image} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
-          {/* Precio */}
-          {producto.precioPromocional ? (
-            <div className="space-x-2 flex items-center">
-              <span className="text-xl text-gray-500 line-through">
-                ${producto.precio.toLocaleString()}
-              </span>
-              <span className="text-2xl font-bold text-[#272321]">
-                ${producto.precioPromocional.toLocaleString()}
-              </span>
-              <span className="text-sm text-green-600 font-semibold bg-green-100 px-2 py-1 rounded">
-                {calcularDescuento()}% OFF
-              </span>
-            </div>
-          ) : (
-            <p className="text-2xl font-bold text-[#272321]">
-              ${producto.precio.toLocaleString()}
-            </p>
-          )}
-
-          {/* Cantidad */}
-{/* Cantidad */}
-<div className="mt-4 w-full max-w-[150px]">
-  <label htmlFor="cantidad" className="block text-sm font-medium text-[#272321] mb-1">
-    Cantidad:
-  </label>
-  <select
-    id="cantidad"
-    value={cantidad}
-    onChange={(e) => setCantidad(e.target.value)}
-    className="block w-full px-3 py-2 text-sm border border-[#7a7266] rounded-md bg-[#f2ede7] text-[#272321] focus:ring-yellow-500 focus:border-yellow-500"
-  >
-    {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
-      <option key={num} value={num}>
-        {num}
-      </option>
-    ))}
-  </select>
-</div>
-
-
-
-          {/* Información detallada */}
-          {producto.descripcionDetallada && (
-            <div className="mt-4 space-y-1 text-sm text-gray-800">
-              <p><strong>Personaje:</strong> {producto.descripcionDetallada.personaje}</p>
-              <p><strong>Tipo de lana:</strong> {producto.descripcionDetallada.tipoLana}</p>
-              <p><strong>Aguja utilizada:</strong> {producto.descripcionDetallada.aguja}</p>
-              <p><strong>Dificultad:</strong> {producto.descripcionDetallada.dificultad}</p>
-              <p><strong>Tamaño:</strong> {producto.descripcionDetallada.tamaño}</p>
-              <p><strong>Tiempo estimado:</strong> {producto.descripcionDetallada.tiempoEstimado}</p>
-              <p><strong>Detalles:</strong> {producto.descripcionDetallada.detalles}</p>
-            </div>
-          )}
-
-          {/* Categorías */}
-          {producto.categorias && producto.categorias.length > 0 && (
-            <div className="mt-2 text-sm text-gray-600">
-              <strong>Categorías:</strong> {producto.categorias.join(", ")}
-            </div>
-          )}
-
-          <button
-            onClick={handleAgregar}
-            className="bg-[#71675d] hover:bg-[#8b8272] text-white px-6 py-2 rounded mt-4"
-          >
-            Agregar al carrito
-          </button>
-        </div>
+function DetailSkeleton() {
+  return (
+    <div role="status" className="grid gap-8 md:grid-cols-2">
+      <span className="sr-only">Cargando producto...</span>
+      <Skeleton className="aspect-[4/5] w-full rounded-lg" />
+      <div className="space-y-4">
+        <Skeleton className="h-5 w-24" />
+        <Skeleton className="h-10 w-3/4" />
+        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-11 w-full" />
       </div>
     </div>
   );
-};
+}
 
-export default ProductDetailPage;
+export default function ProductDetailPage() {
+  const { id } = useParams();
+  const { add } = useCart();
+  const { data: products, isPending, isError, refetch, isFetching } = useProducts();
+  const [quantityState, setQuantityState] = useState({ id, value: 1 });
+  const quantity = quantityState.id === id ? quantityState.value : 1;
+  const setQuantity = (value) => setQuantityState({ id, value: clampQuantity(value) });
 
+  const productId = /^\d+$/.test(id ?? '') ? Number(id) : null;
+  const product = productId ? products?.find((item) => item.id === productId) : undefined;
+  const related = useMemo(() => (product && products ? getRelatedProducts(products, product) : []), [products, product]);
 
+  if (productId && isPending) return <DetailSkeleton />;
+  if (productId && isError) return <CatalogError onRetry={() => refetch()} isRetrying={isFetching} />;
+  if (!product) {
+    return <NotFoundPage title="Producto no encontrado" message="Este producto no existe o ya no está disponible." />;
+  }
+
+  const specs = SPEC_FIELDS.filter(({ key }) => {
+    const value = product.descripcionDetallada?.[key];
+    return value != null && String(value).trim() !== '';
+  });
+  const handleAdd = () => add(product.id, quantity);
+
+  return (
+    <div className="space-y-16">
+      <article className="grid gap-8 md:grid-cols-2 md:gap-12">
+        <Gallery product={product} />
+
+        <div className="space-y-6">
+          {product.categorias.length > 0 && (
+            <ul className="flex flex-wrap gap-2" aria-label="Categorías">
+              {product.categorias.map((name) => {
+                const link = getCategoryLink(name);
+                return (
+                  <li key={name}>
+                    {link ? (
+                      <Link to={link} className="rounded-full focus-visible:outline-accent">
+                        <Badge variant="accent" className="hover:bg-accent hover:text-on-accent">
+                          {name}
+                        </Badge>
+                      </Link>
+                    ) : (
+                      <Badge>{name}</Badge>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+
+          <div className="space-y-3">
+            <h1 className="font-display text-3xl font-semibold leading-tight md:text-4xl">{product.nombre}</h1>
+            <Price product={product} size="lg" />
+          </div>
+
+          {product.descripcion && <p className="text-base leading-relaxed text-ink-muted">{product.descripcion}</p>}
+
+          <div className="hidden items-center gap-3 md:flex">
+            <QuantityStepper value={quantity} onChange={setQuantity} />
+            <Button className="flex-1" onClick={handleAdd}>
+              Agregar al carrito
+            </Button>
+          </div>
+
+          {specs.length > 0 && (
+            <section aria-labelledby="ficha-tecnica" className="rounded-lg border border-line bg-surface p-5">
+              <h2 id="ficha-tecnica" className="font-display text-lg font-semibold">
+                Ficha técnica
+              </h2>
+              <dl className="mt-4 grid gap-x-6 gap-y-3 sm:grid-cols-2">
+                {specs.map(({ key, label }) => (
+                  <div key={key} className={key === 'detalles' ? 'sm:col-span-2' : undefined}>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{label}</dt>
+                    <dd className="mt-0.5 text-sm">{product.descripcionDetallada[key]}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          )}
+        </div>
+      </article>
+
+      {related.length > 0 && (
+        <section aria-labelledby="relacionados" className="space-y-4">
+          <h2 id="relacionados" className="font-display text-2xl font-semibold">
+            También te puede gustar
+          </h2>
+          <ul className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
+            {related.map((item) => (
+              <li key={item.id} className="flex">
+                <ProductCard product={item} className="w-full" />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Mobile: sticky add-to-cart bar above the bottom navigation. */}
+      <div className="h-20 md:hidden" aria-hidden="true" />
+      <GlassPanel className="fixed inset-x-3 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-30 flex items-center gap-3 p-3 md:hidden">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-xs text-ink-muted">{product.nombre}</p>
+          <p className="font-semibold">{formatPrice(getUnitPrice(product) * quantity)}</p>
+        </div>
+        <QuantityStepper value={quantity} onChange={setQuantity} size="sm" />
+        <Button size="sm" onClick={handleAdd}>
+          Agregar al carrito
+        </Button>
+      </GlassPanel>
+    </div>
+  );
+}
