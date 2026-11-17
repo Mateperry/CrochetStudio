@@ -95,6 +95,19 @@ Las tres primeras migraciones (`..._esquema_base`, `..._perfiles_y_roles`, `..._
 
 Al aplicar `..._guardado_atomico_productos.sql` el panel admin empieza a guardar con `upsert_product` / `delete_product`. **Despliega el frontend y la migración juntos**: el panel nuevo sin la migración muestra "Falta aplicar la migración de guardado de productos".
 
+## Pedidos y pagos
+
+- El checkout (`/checkout`) crea el pedido con la función `create_order` de la base (migración `..._pedidos.sql`). La base toma los precios vigentes de `productos`; el navegador solo manda ids y cantidades.
+- Tras confirmar, `/pedido/:id/confirmado` muestra el número de pedido y los siguientes pasos.
+- El admin ve y cambia el estado de los pedidos en `/admin` → pestaña **Pedidos**.
+
+### Métodos de pago
+
+Viven en `src/features/checkout/payment/`. Cada método es un objeto `{ id, label, description, isAvailable(), getUrl(order), start(order) }` registrado en `payment/index.js`.
+
+- **WhatsApp** (actual): con `VITE_WHATSAPP_NUMBER` configurado, la confirmación muestra un botón que abre WhatsApp con el resumen del pedido.
+- **Agregar una pasarela** (Wompi, Mercado Pago, ePayco): crea `payment/<pasarela>Payment.js` con la misma forma. `getUrl(order)` debe devolver la URL de pago que genere la pasarela (normalmente desde una Edge Function de Supabase que firme la transacción con la llave privada; **nunca** pongas llaves privadas en variables `VITE_*`). Agrégalo al arreglo `PAYMENT_METHODS`.
+
 ## Imágenes de productos
 
 Las fotos **no** se guardan en el repositorio. Viven en Supabase Storage (bucket `Imagenes`) y la tienda las carga por URL.

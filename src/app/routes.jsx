@@ -7,6 +7,7 @@ import CartPage from "../pages/CartPage";
 import CheckoutPage from "../pages/CheckoutPage";
 import ContactPage from "../pages/ContactPage";
 import NotFoundPage from "../pages/NotFoundPage";
+import OrderConfirmationPage from "../pages/OrderConfirmationPage";
 import AdminDashboardPage from "../pages/admin/AdminDashboardPage";
 import ProtectedRoute from "../features/auth/ProtectedRoute";
 import { CATEGORIES } from "../constants/categories";
@@ -30,6 +31,7 @@ export default function AppRoutes({ onRequireAuth }) {
       <Route path="/contacto" element={<ContactPage />} />
       <Route path="/carrito" element={<CartPage />} />
       <Route path="/checkout" element={<CheckoutPage />} />
+      <Route path="/pedido/:id/confirmado" element={<OrderConfirmationPage />} />
       <Route
         path="/admin/*"
         element={
