@@ -9,14 +9,14 @@ import { useAuth } from '../../features/auth/useAuth';
 
 const menuItems = [
   { label: "Inicio", icon: <HomeIcon />, link: "/" },
-  { label: "Novedades", icon: <StarIcon />, link: "/novedades" },
-  { label: "Animes", icon: <TvIcon />, link: "/animes" },
-  { label: "Películas", icon: <FilmIcon />, link: "/peliculas" },
-  { label: "Series", icon: <TvIcon />, link: "/series" },
-  { label: "Fantasía", icon: <GhostIcon />, link: "/fantasia" },
-  { label: "Animales", icon: <PawPrintIcon />, link: "/animales" },
-  { label: "Personalizados", icon: <SparklesIcon />, link: "/personalizados" },
-  { label: "Ofertas", icon: <TagIcon />, link: "/ofertas" },
+  { label: "Novedades", icon: <StarIcon />, link: "/categoria/novedades" },
+  { label: "Animes", icon: <TvIcon />, link: "/categoria/anime" },
+  { label: "Películas", icon: <FilmIcon />, link: "/categoria/peliculas" },
+  { label: "Series", icon: <TvIcon />, link: "/categoria/series" },
+  { label: "Fantasía", icon: <GhostIcon />, link: "/categoria/fantasia" },
+  { label: "Animales", icon: <PawPrintIcon />, link: "/categoria/animales" },
+  { label: "Personalizados", icon: <SparklesIcon />, link: "/categoria/personalizados" },
+  { label: "Ofertas", icon: <TagIcon />, link: "/categoria/ofertas" },
   { label: "Contacto", icon: <UserIcon />, link: "/contacto" },
 ];
 

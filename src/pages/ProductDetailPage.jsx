@@ -1,11 +1,16 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useCart } from "../features/cart/useCart";
+import { useProducts } from "../features/catalog/hooks/useProducts";
+import { CatalogError, CatalogLoading } from "../features/catalog/CatalogStatus";
+import NotFoundPage from "./NotFoundPage";
 
-const ProductDetailPage = ({ productos }) => {
+const ProductDetailPage = () => {
   const { add } = useCart();
   const { id } = useParams();
-  const producto = productos.find((p) => p.id === parseInt(id));
+  const { data: productos, isPending, isError, refetch, isFetching } = useProducts();
+  const productId = /^\d+$/.test(id ?? "") ? Number(id) : null;
+  const producto = productId ? productos?.find((p) => p.id === productId) : undefined;
   // Selected image is stored per product id, so navigating to another product
   // falls back to that product's first image.
   const [seleccion, setSeleccion] = useState({ id: null, imagen: null });
@@ -14,10 +19,11 @@ const ProductDetailPage = ({ productos }) => {
   const setImagenPrincipal = (imagen) => setSeleccion({ id, imagen });
   const [cantidad, setCantidad] = useState(1);
 
+  if (productId && isPending) return <CatalogLoading label="Cargando producto..." />;
+  if (productId && isError) return <CatalogError onRetry={() => refetch()} isRetrying={isFetching} />;
+
   if (!producto) {
-    return (
-      <h2 className="mt-20 text-center text-red-500">Producto no encontrado</h2>
-    );
+    return <NotFoundPage title="Producto no encontrado" message="Este producto no existe o ya no está disponible." />;
   }
 
   const calcularDescuento = () => {

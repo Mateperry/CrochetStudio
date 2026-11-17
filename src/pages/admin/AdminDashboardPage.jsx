@@ -20,7 +20,7 @@ import ProductForm from '../../features/admin/ProductForm';
  */
 export default function AdminDashboardPage() {
   const { userProfile, signOut } = useAuth();
-  const { data: products = [], isLoading, error } = useProducts();
+  const { data: products = [], isLoading, error, refetch } = useProducts();
   const { data: allCategories = [] } = useCategories();
 
   const createMutation = useCreateProduct();
@@ -114,7 +114,7 @@ export default function AdminDashboardPage() {
         <h2 className="text-2xl font-bold text-red-700 mb-2">Error al cargar productos</h2>
         <p className="text-red-600 mb-4">{error.message}</p>
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => refetch()}
           className="px-6 py-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
         >
           Reintentar
