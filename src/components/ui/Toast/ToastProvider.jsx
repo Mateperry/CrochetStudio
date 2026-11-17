@@ -72,7 +72,7 @@ export default function ToastProvider({ children }) {
           <div
             key={toast.id}
             className={cn(
-              'pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-md bg-white px-4 py-3 text-sm text-[#272321] shadow-md',
+              'glass pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-md px-4 py-3 text-sm text-ink shadow-md',
               VARIANT_CLASSES[toast.variant] ?? VARIANT_CLASSES.info,
             )}
           >

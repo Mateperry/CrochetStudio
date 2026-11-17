@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import HomePage from "../pages/HomePage";
 import CategoryPage from "../pages/CategoryPage";
@@ -9,6 +10,9 @@ import NotFoundPage from "../pages/NotFoundPage";
 import AdminDashboardPage from "../pages/admin/AdminDashboardPage";
 import ProtectedRoute from "../features/auth/ProtectedRoute";
 import { CATEGORIES } from "../constants/categories";
+
+// Only registered in development; Vite drops the import from the production bundle.
+const StyleGuidePage = import.meta.env.DEV ? lazy(() => import("../pages/StyleGuidePage")) : null;
 
 export default function AppRoutes({ onRequireAuth }) {
   return (
@@ -34,6 +38,16 @@ export default function AppRoutes({ onRequireAuth }) {
           </ProtectedRoute>
         }
       />
+      {StyleGuidePage && (
+        <Route
+          path="/style-guide"
+          element={
+            <Suspense fallback={null}>
+              <StyleGuidePage />
+            </Suspense>
+          }
+        />
+      )}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
